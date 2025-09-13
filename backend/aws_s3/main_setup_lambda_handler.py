@@ -2,10 +2,85 @@ import json
 import urllib.parse
 import boto3
 from datetime import datetime
+import os
+import time
 
 s3 = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
+mediaconvert = boto3.client('mediaconvert')
 table = dynamodb.Table('fragments')
+
+def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
+    response = mediaconvert.describe_endpoints()
+    endpoint = response['Endpoints'][0]['Url']
+    
+    mc_client = boto3.client('mediaconvert', endpoint_url=endpoint)
+    
+    job_settings = {
+        'Role': 'arn:aws:iam::348076083335:role/MediaConvertRole',  # created role manually
+        'Settings': {
+            'Inputs': [{
+                'FileInput': input_s3_uri,
+                'TimecodeSource': 'ZEROBASED'
+            }],
+            'OutputGroups': [{
+                'Name': 'File Group',
+                'OutputGroupSettings': {
+                    'Type': 'FILE_GROUP_SETTINGS',
+                    'FileGroupSettings': {
+                        'Destination': 's3://fragment-gifs/gifs/'
+                    }
+                },
+                'Outputs': [{
+                    'NameModifier': '_gif',
+                    'ContainerSettings': {
+                        'Container': 'GIF'
+                    },
+                    'VideoDescription': {
+                        'CodecSettings': {
+                            'Codec': 'GIF',
+                            'GifSettings': {
+                                'FramerateControl': 'INITIALIZE_FROM_SOURCE',
+                                'FramerateConversionAlgorithm': 'DUPLICATE_DROP'
+                            }
+                        },
+                        'Width': 720,
+                        'Height': 480,
+                        'TimecodeInsertion': 'DISABLED'
+                    }
+                }]
+            }]
+        }
+    }
+    
+    job = mc_client.create_job(**job_settings)
+    return job['Job']['Id']
+
+def check_job_status(job_id: str):
+    response = mediaconvert.describe_endpoints()
+    endpoint = response['Endpoints'][0]['Url']
+    mc_client = boto3.client('mediaconvert', endpoint_url=endpoint)
+    job = mc_client.get_job(Id=job_id)
+    return job['Job']['Status']  # 'SUBMITTED', 'PROGRESSING', 'COMPLETE', 'ERROR'
+
+def wait_for_job_completion(job_id: str, max_wait_seconds: int = 300):
+    """Wait for MediaConvert job to complete, with timeout"""
+    start_time = time.time()
+    
+    while time.time() - start_time < max_wait_seconds:
+        status = check_job_status(job_id)
+        print(f"Job {job_id} status: {status}")
+        
+        if status == 'COMPLETE':
+            return True
+        elif status == 'ERROR':
+            return False
+        
+        # Wait 10 seconds before checking again
+        time.sleep(10)
+    
+    print(f"Job {job_id} timed out after {max_wait_seconds} seconds")
+    return False
 
 def lambda_handler(event, context):
     print("=== LAMBDA TRIGGERED ===")
@@ -18,16 +93,48 @@ def lambda_handler(event, context):
         response = s3.get_object(Bucket=bucket, Key=key)
         print("CONTENT TYPE: " + response['ContentType'])
         
-        # Write to DynamoDB - Full video record
         video_id = key.split('/')[-1].split('.')[0]  # Remove file extension
         timestamp = datetime.utcnow().isoformat() + 'Z'
         
+        temp_webm = f'/tmp/{video_id}.webm'
+        temp_gif = f'/tmp/{video_id}.gif'
+        
+        s3.download_file(bucket, key, temp_webm)
+        print(f"Downloaded WebM: {temp_webm}")
+        
+        # Convert to GIF using MediaConvert
+        input_s3_uri = f's3://{bucket}/{key}'
+        output_s3_uri = f's3://fragment-gifs/gifs/{video_id}.gif'
+        
+        try:
+            job_id = create_gif_with_mediaconvert(input_s3_uri, output_s3_uri)
+            print(f"MediaConvert job created: {job_id}")
+            
+            # Wait for job completion (max 5 minutes) TODO might need to change for more lenient timeout
+            if wait_for_job_completion(job_id, max_wait_seconds=300):
+                print(f"GIF conversion completed successfully!")
+                gif_link = output_s3_uri
+            else:
+                print(f"GIF conversion failed or timed out")
+                gif_link = f'error'  # Placeholder
+                
+        except Exception as e:
+            print(f"MediaConvert job failed: {e}")
+            gif_link = f'error'  # Placeholder
+        
+        # Clean up temp files
+        try:
+            os.remove(temp_webm)
+        except:
+            pass
+        
+        # Write to DynamoDB - Full video record
         dynamo_item = {
             'video_id': video_id,
             'tags': ['tag1', 'tag2'],  # random for now
             'notes': f'Video uploaded from S3: {key}',
             'is_public': False,  # default to private
-            'gif_link': f's3://fragment-webm/gifs/{video_id}.gif',  # Placeholder!
+            'gif_link': gif_link,
             'webm_link': f's3://{bucket}/{key}',
             'user_id': 'system',  # Default user!
             'created_at': timestamp,
