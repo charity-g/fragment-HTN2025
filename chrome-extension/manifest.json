@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Fragments",
+  "version": "1.0",
+  "description": "Store inspirations",
+  "permissions": ["tabCapture", "storage", "activeTab", "scripting"],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "host_permissions": ["<all_urls>"]
+}
