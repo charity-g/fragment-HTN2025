@@ -4,6 +4,8 @@ backend/models/__pycache__/
 backend/**/__pycache__/
 backend/.venv
 backend/uploads/*
+backend/frames/*
+backend/keyframes/*
 
 backend/aws_scripts/.venv
 backend/aws_scripts/__pycache__/

@@ -3,9 +3,9 @@ async function uploadToBackend(blob, metadata) {
   const formData = new FormData();
   formData.append("file", blob, "recording.webm");
   if (metadata) {
-    formData.append("title", metadata.title);
-    formData.append("description", metadata.description);
-    formData.append("tags", metadata.tags);
+    formData.append("tags", metadata.tags || "");
+    formData.append("notes", metadata.notes || "");
+    formData.append("sourceURL", metadata.sourceURL || "");
   }
 
   try {
@@ -50,9 +50,7 @@ function injectButtons() {
     let cancelled = false;
 
     hoverBtn.onclick = (e) => {
-
       hoverBtn.style.display = "none";
-
       e.stopPropagation();
       e.preventDefault();
 
@@ -62,7 +60,7 @@ function injectButtons() {
       const right = rect.right + window.scrollX;
       const bottom = rect.bottom + window.scrollY;
 
-      // 4 overlays around the video
+      // Overlays
       const overlays = [];
       function makeOverlay(styles) {
         const div = document.createElement("div");
@@ -109,7 +107,6 @@ function injectButtons() {
       controlPanel.style.display = "flex";
       controlPanel.style.alignItems = "center";
       controlPanel.style.gap = "15px";
-      controlPanel.style.fontFamily = "sans-serif";
 
       const stopBtn = document.createElement("button");
       stopBtn.textContent = "⏹ Stop";
@@ -119,8 +116,6 @@ function injectButtons() {
       stopBtn.style.padding = "6px 14px";
       stopBtn.style.borderRadius = "8px";
       stopBtn.style.cursor = "pointer";
-      stopBtn.style.fontSize = "14px";
-      stopBtn.style.fontWeight = "bold";
 
       const timer = document.createElement("span");
       timer.textContent = "00:00";
@@ -140,12 +135,7 @@ function injectButtons() {
         </svg>`;
       deleteBtn.style.background = "transparent";
       deleteBtn.style.border = "none";
-      deleteBtn.style.padding = "6px 10px";
-      deleteBtn.style.borderRadius = "8px";
       deleteBtn.style.cursor = "pointer";
-      deleteBtn.style.display = "flex";
-      deleteBtn.style.alignItems = "center";
-      deleteBtn.style.justifyContent = "center";
 
       function cleanupUI() {
         overlays.forEach((o) => o.remove());
@@ -162,12 +152,10 @@ function injectButtons() {
         timer.textContent = `${mins}:${secs}`;
       }
 
-      // Start recording immediately
+      // Recording
       let stream = null;
       try {
-        if (video.captureStream) {
-          stream = video.captureStream();
-        }
+        if (video.captureStream) stream = video.captureStream();
       } catch (err) {
         console.warn("captureStream blocked (likely DRM). Falling back.");
       }
@@ -187,7 +175,7 @@ function injectButtons() {
 
         if (cancelled) {
           cancelled = false;
-          return; // don't show form if deleted
+          return;
         }
 
         cleanupUI();
@@ -200,32 +188,46 @@ function injectButtons() {
         form.style.zIndex = "10001";
         form.style.background = "white";
         form.style.color = "black";
-        form.style.padding = "14px";
+        form.style.padding = "16px";
         form.style.border = "1px solid #ccc";
-        form.style.borderRadius = "10px";
-        form.style.boxShadow = "0 2px 10px rgba(0,0,0,0.3)";
-        form.style.width = "250px";
+        form.style.borderRadius = "12px";
+        form.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
+        form.style.width = "280px";
+        form.style.fontFamily = "sans-serif";
+
         form.innerHTML = `
-          <h4 style="margin: 0 0 10px 0; font-family: sans-serif;">Save Recording</h4>
-          <label style="font-size: 13px;">Title:<br><input id="recTitle" type="text" style="width:100%; margin-bottom:8px;"></label><br>
-          <label style="font-size: 13px;">Description:<br><textarea id="recDesc" style="width:100%; margin-bottom:8px;"></textarea></label><br>
-          <label style="font-size: 13px;">Tags:<br><input id="recTags" type="text" placeholder="comma separated" style="width:100%; margin-bottom:8px;"></label><br>
-          <button id="recSave" style="background:#4caf50;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;">Save</button>
-          <button id="recCancel" style="margin-left:8px;background:#ccc;color:black;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;">Cancel</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <span style="cursor:pointer;font-weight:bold;" id="closeBtn">❌</span>
+          </div>
+          
+          <label style="font-size:13px;font-weight:600;">Tags</label>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;">
+            <input id="recTags" type="text" placeholder="comma separated" 
+              style="flex:1;padding:6px;border:1px solid #ccc;border-radius:6px;">
+          </div>
+
+          <label style="font-size:13px;font-weight:600;">Notes</label>
+          <textarea id="recNotes" rows="3" 
+            style="width:100%;margin:6px 0 12px;padding:6px;border:1px solid #ccc;border-radius:6px;"></textarea>
+
+          <button id="recSave" 
+            style="width:100%;background:#4caf50;color:white;border:none;padding:10px;border-radius:8px;font-weight:bold;cursor:pointer;">
+            Create Fragment
+          </button>
         `;
         document.body.appendChild(form);
 
+        form.querySelector("#closeBtn").onclick = () => form.remove();
         form.querySelector("#recSave").onclick = () => {
           const metadata = {
-            title: form.querySelector("#recTitle").value,
-            description: form.querySelector("#recDesc").value,
             tags: form.querySelector("#recTags").value,
+            notes: form.querySelector("#recNotes").value,
             sourceURL: window.location.href,
+            user_id: "demo-user-123" // use auth0 to make dynamic
           };
           uploadToBackend(blob, metadata);
           form.remove();
         };
-        form.querySelector("#recCancel").onclick = () => form.remove();
       };
 
       recorder.start(2000);
@@ -234,14 +236,14 @@ function injectButtons() {
 
       stopBtn.onclick = () => {
         if (recorder && recorder.state === "recording") {
-          cleanupUI(); // remove overlay + panel immediately
+          cleanupUI();
           recorder.stop();
         }
       };
 
       deleteBtn.onclick = () => {
         if (recorder && recorder.state === "recording") {
-          cancelled = true; // mark so form won't appear
+          cancelled = true;
           recorder.stop();
         }
         cleanupUI();

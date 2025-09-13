@@ -15,7 +15,8 @@ from dependencies import PermissionsValidator, validate_token
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from s3_utils import upload_file_to_s3
 from routes import videos, users
-
+from summarizeClips import processClip
+import json
 
 app = FastAPI()
 
@@ -63,42 +64,42 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @app.post("/upload")
 async def upload_video(
     file: UploadFile = File(...),
-    title: Optional[str] = Form(None),
-    description: Optional[str] = Form(None),
+    notes: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
     sourceURL: Optional[str] = Form(None),
     user_id: Optional[str] = Form(None)
 ):
     video_id = str(uuid.uuid4())
-    
     file_path = os.path.join(UPLOAD_DIR, video_id + ".webm")
     with open(file_path, "wb") as f:
         f.write(await file.read())
-    
-    # Prepare S3 metadata
+
     metadata = {}
-    if title:
-        metadata['title'] = title
-    if description:
-        metadata['description'] = description
+    if notes:
+        metadata["notes"] = notes
     if tags:
-        # tags can be a comma-separated string or array, store as string
         initial_tags = []
         if isinstance(tags, str):
-            raw_tags = [tag.strip() for tag in tags.split(',')]
+            raw_tags = [tag.strip() for tag in tags.split(",")]
         else:
             raw_tags = [tag.strip() for tag in tags]
         for tag in raw_tags:
-            # Split tags with spaces into multiple tags
             initial_tags.extend([t for t in tag.split() if t])
-        metadata['initial_tags'] = ','.join(initial_tags)
+        metadata["initial_tags"] = ",".join(initial_tags)
     if sourceURL:
-        metadata['source_link'] = sourceURL
+        metadata["sourceURL"] = sourceURL
     if user_id:
-        metadata['user_id'] = user_id
+        metadata["user_id"] = user_id
+
+    genAIData = processClip(file_path)
+    if genAIData:
+        # ✅ Convert dict → JSON string
+        metadata["genAIData"] = json.dumps(genAIData)
 
     s3_bucket = "fragment-webm"
     s3_key = f"uploads/{video_id}.webm"
+
+    # ✅ Pass metadata as strings only
     upload_file_to_s3(file_path, s3_bucket, s3_key, metadata=metadata if metadata else None)
 
     os.remove(file_path)
@@ -107,9 +108,9 @@ async def upload_video(
         "status": "success",
         "video_id": video_id,
         "s3_key": s3_key,
-        "description": description,
+        "notes": notes,
         "tags": tags,
-        "user_id": user_id
+        "user_id": user_id,
     }
 
 app.include_router(videos.router, prefix="/videos", tags=["videos"])
