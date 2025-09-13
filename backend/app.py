@@ -2,13 +2,24 @@
 from fastapi import FastAPI, File, UploadFile
 import uvicorn
 import os
+import sys
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from models.video import VideoTaskRequest, VideoTaskStatus, VideoTaskResult
 import uuid
 
 from s3_utils import upload_file_to_s3
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change to specific origins in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -33,5 +44,7 @@ async def upload_video(file: UploadFile = File(...)):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    if len(sys.argv) >= 1 and sys.argv[0] == "dev":
+        uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    else:
+        uvicorn.run(app, host="0.0.0.0", port=8000)
