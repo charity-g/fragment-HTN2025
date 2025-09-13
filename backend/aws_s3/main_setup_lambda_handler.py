@@ -11,13 +11,16 @@ mediaconvert = boto3.client('mediaconvert')
 table = dynamodb.Table('fragments')
 
 def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
+    # Get MediaConvert endpoint
     response = mediaconvert.describe_endpoints()
     endpoint = response['Endpoints'][0]['Url']
     
+    # Create MediaConvert client with endpoint
     mc_client = boto3.client('mediaconvert', endpoint_url=endpoint)
     
+    # Job settings for GIF conversion
     job_settings = {
-        'Role': 'arn:aws:iam::348076083335:role/MediaConvertRole',  # created role manually
+        'Role': 'arn:aws:iam::348076083335:role/MediaConvertRole',  # created role
         'Settings': {
             'Inputs': [{
                 'FileInput': input_s3_uri,
@@ -28,7 +31,7 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
                 'OutputGroupSettings': {
                     'Type': 'FILE_GROUP_SETTINGS',
                     'FileGroupSettings': {
-                        'Destination': 's3://fragment-gifs/gifs/'
+                        'Destination': output_s3_uri.replace('/gif', '')
                     }
                 },
                 'Outputs': [{
@@ -53,13 +56,19 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
         }
     }
     
+    # Submit job
     job = mc_client.create_job(**job_settings)
     return job['Job']['Id']
 
 def check_job_status(job_id: str):
+    # Get MediaConvert endpoint
     response = mediaconvert.describe_endpoints()
     endpoint = response['Endpoints'][0]['Url']
+    
+    # Create MediaConvert client with endpoint
     mc_client = boto3.client('mediaconvert', endpoint_url=endpoint)
+    
+    # Get job status
     job = mc_client.get_job(Id=job_id)
     return job['Job']['Status']  # 'SUBMITTED', 'PROGRESSING', 'COMPLETE', 'ERROR'
 
@@ -110,7 +119,7 @@ def lambda_handler(event, context):
             job_id = create_gif_with_mediaconvert(input_s3_uri, output_s3_uri)
             print(f"MediaConvert job created: {job_id}")
             
-            # Wait for job completion (max 5 minutes) TODO might need to change for more lenient timeout
+            # Wait for job completion (max 5 minutes)
             if wait_for_job_completion(job_id, max_wait_seconds=300):
                 print(f"GIF conversion completed successfully!")
                 gif_link = output_s3_uri
@@ -145,8 +154,9 @@ def lambda_handler(event, context):
         print(f"Saved to DynamoDB: {video_id}")
         
         return {
-            'statusCode': 200,
-            'body': {'message': f'Successfully processed {key} from {bucket} and saved to DynamoDB.', 'video_id': video_id  }
+            "status": "success",
+            "video_id": video_id,
+            "message": "Saved to DynamoDB!"
         }
     except Exception as e:
         print(e)
@@ -155,8 +165,8 @@ def lambda_handler(event, context):
             bucket if 'bucket' in locals() else 'unknown'
         ))  
         return {
-            'statusCode': 400,
-            'body': str(e)
+            "status": "error",
+            "error": str(e)
         }
 
 # To invoke this Lambda function manually using AWS CLI:

@@ -33,10 +33,9 @@ async def upload_video(
 ):
     task_id = str(uuid.uuid4())
     
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    file_path = os.path.join(UPLOAD_DIR, title if title else task_id)
     with open(file_path, "wb") as f:
         f.write(await file.read())
-    payload = VideoTaskRequest(task_id=task_id, input_path=file_path, operation="transcode")
     
     # Prepare S3 metadata
     metadata = {}
@@ -51,7 +50,7 @@ async def upload_video(
         metadata['user_id'] = user_id
 
     s3_bucket = "fragment-webm"
-    s3_key = f"uploads/{file.filename}"
+    s3_key = f"uploads/{title if title else task_id}"
     upload_file_to_s3(file_path, s3_bucket, s3_key, metadata=metadata if metadata else None)
 
     return {

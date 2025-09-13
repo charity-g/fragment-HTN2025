@@ -2,6 +2,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 def upload_file_to_s3(file_path: str, bucket: str, key: str, metadata=None):
+    print(f"Uploading {file_path} to s3://{bucket}/{key} with metadata: {metadata}")
     s3_client = boto3.client("s3")
     region = s3_client.meta.region_name or "us-east-1"
     # Check if bucket exists, create if not
