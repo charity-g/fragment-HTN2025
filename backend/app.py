@@ -50,7 +50,15 @@ async def upload_video(
         metadata['description'] = description
     if tags:
         # tags can be a comma-separated string or array, store as string
-        metadata['initial_tags'] = tags if isinstance(tags, str) else ','.join(tags)
+        initial_tags = []
+        if isinstance(tags, str):
+            raw_tags = [tag.strip() for tag in tags.split(',')]
+        else:
+            raw_tags = [tag.strip() for tag in tags]
+        for tag in raw_tags:
+            # Split tags with spaces into multiple tags
+            initial_tags.extend([t for t in tag.split() if t])
+        metadata['initial_tags'] = ','.join(initial_tags)
     if source_link:
         metadata['source_link'] = source_link
     if user_id:
