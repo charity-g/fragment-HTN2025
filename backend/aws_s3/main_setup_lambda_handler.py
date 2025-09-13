@@ -5,7 +5,7 @@ from datetime import datetime
 
 s3 = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('fragments')
+table = dynamodb.Table('fragment-test')
 
 def lambda_handler(event, context):
     print("=== LAMBDA TRIGGERED ===")
@@ -18,20 +18,12 @@ def lambda_handler(event, context):
         response = s3.get_object(Bucket=bucket, Key=key)
         print("CONTENT TYPE: " + response['ContentType'])
         
-        # Write to DynamoDB - Full video record
-        video_id = key.split('/')[-1].split('.')[0]  # Remove file extension
-        timestamp = datetime.utcnow().isoformat() + 'Z'
+        # Write to DynamoDB - SIMPLE TEST
+        video_id = key.split('/')[-1]
         
         dynamo_item = {
             'video_id': video_id,
-            'tags': ['tag1', 'tag2'],  # random for now
-            'notes': f'Video uploaded from S3: {key}',
-            'is_public': False,  # default to private
-            'gif_link': f's3://fragment-webm/gifs/{video_id}.gif',  # Placeholder!
-            'webm_link': f's3://{bucket}/{key}',
-            'user_id': 'system',  # Default user!
-            'created_at': timestamp,
-            'updated_at': timestamp
+            'message': 'Hello from Lambda!'
         }
         
         table.put_item(Item=dynamo_item)
