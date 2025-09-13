@@ -1,2 +1,4 @@
 # fragment-HTN2025
-fragment
+app: fragment
+hacakthon: hack the north 2025
+people: donald, paul, rayna, charity
