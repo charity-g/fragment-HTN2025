@@ -1,6 +1,31 @@
 let recorder;
 let chunks = [];
 
+
+async function uploadToBackend(blob) {
+  const formData = new FormData();
+  formData.append("file", blob, "recording.webm");
+
+  try {
+    const resp = await fetch(`http://0.0.0.0:8000/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!resp.ok) {
+      throw new Error(`Upload failed: ${resp.statusText}`);
+    }
+
+    const data = await resp.json();
+    console.log("Upload response:", data);
+    alert("Uploaded to backend: " + JSON.stringify(data));
+  } catch (err) {
+    console.error("Error uploading video:", err);
+    alert("Upload failed: " + err.message);
+  }
+}
+
+
 async function startTabCapture() {
   chrome.tabCapture.capture(
     {
@@ -53,11 +78,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: "video/webm" });
         chunks = [];
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "video-element-recording.webm"; 
-        a.click();
+        uploadToBackend(blob);
+        // If you still want local download for backup:
+        // const url = URL.createObjectURL(blob);
+        // const a = document.createElement("a");
+        // a.href = url;
+        // a.download = "video-element-recording.webm"; 
+        // a.click();
       };
       recorder.start(2000);
     });

@@ -1,13 +1,12 @@
 let recorder;
 let chunks = [];
 
-// Function to upload video blob to your backend (FastAPI)
 async function uploadToBackend(blob) {
   const formData = new FormData();
   formData.append("file", blob, "recording.webm");
 
   try {
-    const resp = await fetch("http://localhost:8000/upload", {
+    const resp = await fetch(`http://0.0.0.0:8000/upload`, {
       method: "POST",
       body: formData,
     });
@@ -24,6 +23,7 @@ async function uploadToBackend(blob) {
     alert("Upload failed: " + err.message);
   }
 }
+
 
 document.getElementById("start").onclick = async (capture = "tab") => {
   // <video> capture
@@ -62,15 +62,14 @@ document.getElementById("start").onclick = async (capture = "tab") => {
         const blob = new Blob(chunks, { type: "video/webm" });
         chunks = [];
 
-        // 🔽 Upload to backend instead of downloading
-        // await uploadToBackend(blob);
+        uploadToBackend(blob);
 
         // If you still want local download for backup:
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "recording.webm";
-        a.click();
+        // const url = URL.createObjectURL(blob);
+        // const a = document.createElement("a");
+        // a.href = url;
+        // a.download = "recording.webm";
+        // a.click();
       };
 
       recorder.start(2000); // collect in 2s chunks

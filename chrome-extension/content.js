@@ -1,3 +1,28 @@
+
+async function uploadToBackend(blob) {
+  const formData = new FormData();
+  formData.append("file", blob, "recording.webm");
+
+  try {
+    const resp = await fetch(`http://0.0.0.0:8000/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!resp.ok) {
+      throw new Error(`Upload failed: ${resp.statusText}`);
+    }
+
+    const data = await resp.json();
+    console.log("Upload response:", data);
+    alert("Uploaded to backend: " + JSON.stringify(data));
+  } catch (err) {
+    console.error("Error uploading video:", err);
+    alert("Upload failed: " + err.message);
+  }
+}
+
+
 function injectButtons() {
   document.querySelectorAll("video").forEach((video) => {
     if (video.dataset.hasRecorderBtn) return;
@@ -56,11 +81,17 @@ function injectButtons() {
         recorder.onstop = () => {
           const blob = new Blob(chunks, { type: "video/webm" });
           chunks = [];
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "element-recording.webm";
-          a.click();
+          // If you still want local download for backup:
+          // const url = URL.createObjectURL(blob);
+          // const a = document.createElement("a");
+          // a.href = url;
+          // a.download = "element-recording.webm";
+          // a.click();
+
+          // Upload to backend
+          console.log("Uploading video blob to backend...");
+          uploadToBackend(blob);
+          console.log("Video uploaded to backend. video???");
 
           btn.textContent = "🎥 Record";
           btn.style.background = "red";
