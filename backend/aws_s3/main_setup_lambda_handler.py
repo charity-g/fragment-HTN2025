@@ -1,23 +1,46 @@
 import json
 import urllib.parse
 import boto3
+from datetime import datetime
 
 s3 = boto3.client('s3')
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('fragments')
 
 def lambda_handler(event, context):
-    #print("Received event: " + json.dumps(event, indent=2))
+    print("=== LAMBDA TRIGGERED ===")
+    print("Received event: " + json.dumps(event, indent=2))
 
     # Get the object from the event and show its content type
-    try:
+    try:    
         bucket = event['Records'][0]['s3']['bucket']['name']
         key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
         response = s3.get_object(Bucket=bucket, Key=key)
         print("CONTENT TYPE: " + response['ContentType'])
+        
+        # Write to DynamoDB - Full video record
+        video_id = key.split('/')[-1].split('.')[0]  # Remove file extension
+        timestamp = datetime.utcnow().isoformat() + 'Z'
+        
+        dynamo_item = {
+            'video_id': video_id,
+            'tags': ['tag1', 'tag2'],  # random for now
+            'notes': f'Video uploaded from S3: {key}',
+            'is_public': False,  # default to private
+            'gif_link': f's3://fragment-webm/gifs/{video_id}.gif',  # Placeholder!
+            'webm_link': f's3://{bucket}/{key}',
+            'user_id': 'system',  # Default user!
+            'created_at': timestamp,
+            'updated_at': timestamp
+        }
+        
+        table.put_item(Item=dynamo_item)
+        print(f"Saved to DynamoDB: {video_id}")
+        
         return {
             "status": "success",
-            "content_type": response['ContentType'],
-            "bucket": bucket,
-            "key": key
+            "video_id": video_id,
+            "message": "Saved to DynamoDB!"
         }
     except Exception as e:
         print(e)

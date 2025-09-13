@@ -7,3 +7,12 @@ backend/uploads/*
 
 aws_s3/.venv
 aws_s3/__pycache__/
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
