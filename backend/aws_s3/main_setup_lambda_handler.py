@@ -140,8 +140,10 @@ def lambda_handler(event, context):
         # Write to DynamoDB - Full video record
         dynamo_item = {
             'video_id': video_id,
-            'tags': ['tag1', 'tag2'],  # random for now
-            'notes': f'Video uploaded from S3: {key}',
+            'tags': response['Metadata'].get('initial_tags', []),
+            'description': response['Metadata'].get('description', None),
+            'source_link': response['Metadata'].get('source_link', None),
+            'user_id': response['Metadata'].get('user_id', 'system'),
             'is_public': False,  # default to private
             'gif_link': gif_link,
             'webm_link': f's3://{bucket}/{key}',

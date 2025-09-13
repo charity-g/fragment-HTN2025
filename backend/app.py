@@ -29,6 +29,7 @@ async def upload_video(
     title: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
+    source_link: Optional[str] = Form(None),
     user_id: Optional[str] = Form(None)
 ):
     task_id = str(uuid.uuid4())
@@ -45,7 +46,9 @@ async def upload_video(
         metadata['description'] = description
     if tags:
         # tags can be a comma-separated string or array, store as string
-        metadata['tags'] = tags if isinstance(tags, str) else ','.join(tags)
+        metadata['initial_tags'] = tags if isinstance(tags, str) else ','.join(tags)
+    if source_link:
+        metadata['source_link'] = source_link
     if user_id:
         metadata['user_id'] = user_id
 
