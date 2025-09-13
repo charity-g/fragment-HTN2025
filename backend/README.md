@@ -6,6 +6,13 @@ pip install -r requirements.txt
 uvicorn app:app --reload
 ```
 
+Using Conda:
+```
+conda create -n venv python=3.11 pip
+conda activate venv
+pip install -r requirements.txt
+```
+
 ### update dependencies
 ```
 pip freeze > requirements.txt
