@@ -67,7 +67,7 @@ async def upload_video(
     title: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
-    source_link: Optional[str] = Form(None),
+    sourceURL: Optional[str] = Form(None),
     user_id: Optional[str] = Form(None)
 ):
     video_id = str(uuid.uuid4())
@@ -93,8 +93,8 @@ async def upload_video(
             # Split tags with spaces into multiple tags
             initial_tags.extend([t for t in tag.split() if t])
         metadata['initial_tags'] = ','.join(initial_tags)
-    if source_link:
-        metadata['source_link'] = source_link
+    if sourceURL:
+        metadata['source_link'] = sourceURL
     if user_id:
         metadata['user_id'] = user_id
 
