@@ -152,6 +152,17 @@ def get_user_gifs_by_tag(user_id: str, tags: list[str]):
 
 @router.get("/{user_id}/tags")
 async def get_user_tags(user_id: str):
-    # Here you would implement the logic to retrieve user details
-    # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": user_id, "gifs": []}
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('fragments')
+    response = table.scan(
+        FilterExpression="user_id = :uid",
+        ExpressionAttributeValues={":uid": user_id}
+    )
+
+    tag_set = set()
+    for item in response.get("Items", []):
+        tags = item.get("tags", [])
+        for tag in tags:
+            tag_set.add(tag)
+
+    return {"status": "success", "user_id": user_id, "tags": list(tag_set)}
