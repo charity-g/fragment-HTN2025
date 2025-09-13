@@ -1,6 +1,13 @@
 import boto3
+import dotenv
+import urllib.parse
 
 s3 = boto3.resource('s3')
+
+AWS_ID = dotenv.get_key("AWS_ID")
+AWS_SECRET = dotenv.get_key("AWS_SECRET")
+REGION_NAME = 'us-east-1'
+DEFAULT_OUTPUT_FORMAT = 'json'
 
 # TODO: aws create policy
 
