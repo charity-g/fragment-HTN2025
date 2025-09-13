@@ -35,8 +35,6 @@ def create_lambda_s3_policy(policy_name):
     )
     return response['Policy']['Arn']
 
-
-
 # Create IAM role for Lambda and attach the policy
 def create_lambda_role(role_name, policy_arn):
     iam = boto3.client('iam')
@@ -61,6 +59,24 @@ def create_lambda_role(role_name, policy_arn):
         PolicyArn=policy_arn
     )
     return role['Role']['Arn']
+
+
+def get_policy_arn(policy_name):
+    iam = boto3.client('iam')
+    paginator = iam.list_policies(Scope='Local')
+    for policy in paginator['Policies']:
+        if policy['PolicyName'] == policy_name:
+            return policy['Arn']
+    raise Exception(f"Policy {policy_name} not found.")
+
+def get_role_arn(role_name):
+    iam = boto3.client('iam')
+    paginator = iam.list_roles()
+    for role in paginator['Roles']:
+        if role['RoleName'] == role_name:
+            return role['Arn']
+    raise Exception(f"Role {role_name} not found.")
+
 
 LAMBDA_FUNCTION_NAME = "ConvertWebMToVideoFormats"
 ROLE_ARN = get_role_arn("LambdaS3Role")
@@ -92,21 +108,15 @@ def create_lambda_function():
       print("Lambda function already exists.")
 
 
-def get_policy_arn(policy_name):
-    iam = boto3.client('iam')
-    paginator = iam.list_policies(Scope='Local')
-    for policy in paginator['Policies']:
-        if policy['PolicyName'] == policy_name:
-            return policy['Arn']
-    raise Exception(f"Policy {policy_name} not found.")
-
-def get_role_arn(role_name):
-    iam = boto3.client('iam')
-    paginator = iam.list_roles()
-    for role in paginator['Roles']:
-        if role['RoleName'] == role_name:
-            return role['Arn']
-    raise Exception(f"Role {role_name} not found.")
+def get_lambda_function(function_name):
+    lambda_client = boto3.client('lambda')
+    try:
+        response = lambda_client.get_function(
+            FunctionName=function_name
+        )
+        return response['Configuration']['FunctionArn']
+    except lambda_client.exceptions.ResourceNotFoundException:
+        raise Exception(f"Lambda function {function_name} not found.")
 
 # Example usage: Create Lambda policy
 # policy_arn = create_lambda_s3_policy("LambdaS3AccessPolicy")
@@ -118,15 +128,17 @@ def get_role_arn(role_name):
 
 # Example usage: Create Lambda function
 # YOU MUST RUN !!! Compress-Archive -Path main_setup_lambda_handler.py -DestinationPath lambda_function.zip
-lambda_fn_arn = create_lambda_function()
+# lambda_fn_arn = create_lambda_function()
+
 
 # Example Usage: S3 trigger setup
+lambda_fn_arn = get_lambda_function('ConvertWebMToVideoFormats')
 BUCKET_NAME = "fragment-webm"
 REGION = "us-east-1"
 notification_config = {
     'LambdaFunctionConfigurations': [
         {
-            'LambdaFunctionArn': response['FunctionArn'],
+            'LambdaFunctionArn': lambda_fn_arn,
             'Events': ['s3:ObjectCreated:*'],
             # Optionally, add a filter for specific prefix/suffix
             # 'Filter': {
@@ -140,17 +152,20 @@ notification_config = {
     ]
 }
 
+lambda_client = boto3.client('lambda')
 s3_client = boto3.client('s3')
-s3_client.put_bucket_notification_configuration(
-    Bucket=BUCKET_NAME,
-    NotificationConfiguration=notification_config
-)
 
-# Grant S3 permission to invoke Lambda
+# Grant S3 permission to invoke Lambda BEFORE setting notification
 lambda_client.add_permission(
     FunctionName=LAMBDA_FUNCTION_NAME,
     StatementId='AllowS3Invoke',
     Action='lambda:InvokeFunction',
     Principal='s3.amazonaws.com',
     SourceArn=f'arn:aws:s3:::{BUCKET_NAME}'
+)
+
+# Now set the notification configuration
+s3_client.put_bucket_notification_configuration(
+    Bucket=BUCKET_NAME,
+    NotificationConfiguration=notification_config
 )

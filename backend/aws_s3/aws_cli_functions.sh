@@ -13,3 +13,6 @@ aws lambda list-functions --query 'Functions[?FunctionName==`ConvertWebMToVideoF
 
 # invoke lambda function
 aws lambda invoke --function-name ConvertWebMToVideoFormats response.json
+
+# check if bucket notification exists
+aws s3api get-bucket-notification-configuration --bucket fragment-webm
