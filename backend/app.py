@@ -10,8 +10,6 @@ import uuid
 from s3_utils import upload_file_to_s3
 
 app = FastAPI()
-
-# Ensure CORS middleware is added before defining routes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # For development, allow all origins

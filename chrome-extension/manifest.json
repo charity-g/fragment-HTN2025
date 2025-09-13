@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Fragments Recorder",
-  "version": "1.9",
+  "version": "1.10",
   "permissions": ["tabCapture", "scripting", "activeTab"],
   "action": {
     "default_popup": "popup.html"

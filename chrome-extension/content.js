@@ -4,7 +4,7 @@ async function uploadToBackend(blob) {
   formData.append("file", blob, "recording.webm");
 
   try {
-    const resp = await fetch(`http://0.0.0.0:8000/upload`, {
+    const resp = await fetch(`http://localhost:8000/upload`, {
       method: "POST",
       body: formData,
     });
