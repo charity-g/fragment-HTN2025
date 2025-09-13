@@ -36,9 +36,9 @@ async def upload_video(
     source_link: Optional[str] = Form(None),
     user_id: Optional[str] = Form(None)
 ):
-    task_id = str(uuid.uuid4())
+    video_id = str(uuid.uuid4())
     
-    file_path = os.path.join(UPLOAD_DIR, title if title else task_id)
+    file_path = os.path.join(UPLOAD_DIR, video_id + ".webm")
     with open(file_path, "wb") as f:
         f.write(await file.read())
     
@@ -57,14 +57,15 @@ async def upload_video(
         metadata['user_id'] = user_id
 
     s3_bucket = "fragment-webm"
-    s3_key = f"uploads/{title if title else task_id}.webm"
+    s3_key = f"uploads/{video_id}.webm"
     upload_file_to_s3(file_path, s3_bucket, s3_key, metadata=metadata if metadata else None)
+
+    os.remove(file_path)
 
     return {
         "status": "success",
-        "task_id": task_id,
+        "video_id": video_id,
         "s3_key": s3_key,
-        "title": title,
         "description": description,
         "tags": tags,
         "user_id": user_id
