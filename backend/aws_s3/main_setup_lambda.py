@@ -80,7 +80,7 @@ def get_role_arn(role_name):
 
 LAMBDA_FUNCTION_NAME = "ConvertWebMToVideoFormats"
 ROLE_ARN = get_role_arn("LambdaS3Role")
-HANDLER = "main.lambda_handler"  # main.py or main_setup_lambda.py depending on your zip
+HANDLER = "main_setup_lambda_handler.lambda_handler" 
 RUNTIME = "python3.9"
 LAMBDA_ZIP_PATH = "lambda_function.zip"  # Path to your zipped lambda code
 
@@ -96,7 +96,7 @@ def create_lambda_function():
           FunctionName=LAMBDA_FUNCTION_NAME,
           Runtime=RUNTIME,
           Role=ROLE_ARN,
-          Handler=HANDLER,
+          Handler=HANDLER,  # <-- Use the correct handler here
           Code={'ZipFile': zipped_code},
           Description='Lambda triggered by S3 events',
           Timeout=60,
@@ -118,6 +118,14 @@ def get_lambda_function(function_name):
     except lambda_client.exceptions.ResourceNotFoundException:
         raise Exception(f"Lambda function {function_name} not found.")
 
+def delete_lambda_function(function_name):
+    lambda_client = boto3.client('lambda')
+    try:
+        lambda_client.delete_function(FunctionName=function_name)
+        print(f"Lambda function '{function_name}' deleted.")
+    except Exception as e:
+        print(f"Error deleting Lambda function '{function_name}': {e}")
+
 # Example usage: Create Lambda policy
 # policy_arn = create_lambda_s3_policy("LambdaS3AccessPolicy")
 
@@ -128,44 +136,45 @@ def get_lambda_function(function_name):
 
 # Example usage: Create Lambda function
 # YOU MUST RUN !!! Compress-Archive -Path main_setup_lambda_handler.py -DestinationPath lambda_function.zip
+# delete_lambda_function(LAMBDA_FUNCTION_NAME)
 # lambda_fn_arn = create_lambda_function()
 
 
 # Example Usage: S3 trigger setup
-lambda_fn_arn = get_lambda_function('ConvertWebMToVideoFormats')
-BUCKET_NAME = "fragment-webm"
-REGION = "us-east-1"
-notification_config = {
-    'LambdaFunctionConfigurations': [
-        {
-            'LambdaFunctionArn': lambda_fn_arn,
-            'Events': ['s3:ObjectCreated:*'],
-            # Optionally, add a filter for specific prefix/suffix
-            # 'Filter': {
-            #     'Key': {
-            #         'FilterRules': [
-            #             {'Name': 'suffix', 'Value': '.webm'}
-            #         ]
-            #     }
-            # }
-        }
-    ]
-}
+# lambda_fn_arn = get_lambda_function('ConvertWebMToVideoFormats')
+# BUCKET_NAME = "fragment-webm"
+# REGION = "us-east-1"
+# notification_config = {
+#     'LambdaFunctionConfigurations': [
+#         {
+#             'LambdaFunctionArn': lambda_fn_arn,
+#             'Events': ['s3:ObjectCreated:*'],
+#             # Optionally, add a filter for specific prefix/suffix
+#             # 'Filter': {
+#             #     'Key': {
+#             #         'FilterRules': [
+#             #             {'Name': 'suffix', 'Value': '.webm'}
+#             #         ]
+#             #     }
+#             # }
+#         }
+#     ]
+# }
 
-lambda_client = boto3.client('lambda')
-s3_client = boto3.client('s3')
+# lambda_client = boto3.client('lambda')
+# s3_client = boto3.client('s3')
 
-# Grant S3 permission to invoke Lambda BEFORE setting notification
-lambda_client.add_permission(
-    FunctionName=LAMBDA_FUNCTION_NAME,
-    StatementId='AllowS3Invoke',
-    Action='lambda:InvokeFunction',
-    Principal='s3.amazonaws.com',
-    SourceArn=f'arn:aws:s3:::{BUCKET_NAME}'
-)
+# # Grant S3 permission to invoke Lambda BEFORE setting notification
+# lambda_client.add_permission(
+#     FunctionName=LAMBDA_FUNCTION_NAME,
+#     StatementId='AllowS3Invoke',
+#     Action='lambda:InvokeFunction',
+#     Principal='s3.amazonaws.com',
+#     SourceArn=f'arn:aws:s3:::{BUCKET_NAME}'
+# )
 
-# Now set the notification configuration
-s3_client.put_bucket_notification_configuration(
-    Bucket=BUCKET_NAME,
-    NotificationConfiguration=notification_config
-)
+# # Now set the notification configuration
+# s3_client.put_bucket_notification_configuration(
+#     Bucket=BUCKET_NAME,
+#     NotificationConfiguration=notification_config
+# )
