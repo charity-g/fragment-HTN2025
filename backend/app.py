@@ -113,26 +113,6 @@ async def upload_video(
         "user_id": user_id
     }
 
-
-@app.get("/opensearch-test")
-def opensearch_test():
-    # Replace with your actual OpenSearch endpoint
-    host = "search-fragment-opensearch-or6bk37m3wqja5rog4rtn3sog4.us-east-1.es.amazonaws.com"
-    port = 443
-    auth = ('admin', 'admin')  # Replace with your credentials or use AWS SigV4 auth
-
-    client = OpenSearch(
-        hosts = [{'host': host, 'port': port}],
-        http_auth = auth,
-        use_ssl = True,
-        verify_certs = True,
-        connection_class = OpenSearch.RequestsHttpConnection
-    )
-
-    # Example: Get cluster health
-    health = client.cluster.health()
-    return {"status": "success", "opensearch_health": health}
-
 app.include_router(videos.router, prefix="/videos", tags=["videos"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 
