@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 import boto3
 from datetime import datetime
@@ -97,10 +97,40 @@ async def follow_user(user_id: str):
 
 @router.get("/{user_id}/gifs")
 async def get_user_gifs(user_id: str, tags: list[str] = Query(None)):
-    # If tags are provided, search by tags using DynamoDB (example query)
-    if tags:
-        get_user_gifs_by_tag(user_id, tags)
-    return {"status": "success", "user_id": user_id, "gifs": []}
+    # If tags is not None and not empty, search by tags using DynamoDB (example query)
+    if tags and len(tags) > 0:
+        print("Searching gifs for user", user_id, "by tags:", tags)
+        return get_user_gifs_by_tag(user_id, tags)
+    
+    # get dynamo db items where user_id matches
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('fragments')
+    response = table.scan(
+        FilterExpression="user_id = :uid",
+        ExpressionAttributeValues={":uid": user_id}
+    )
+    video_ids =  response.get("Items", [])
+    gif_ids = [item['video_id'] + ".gif_gif.gif" for item in video_ids if 'video_id' in item]
+    print(video_ids, gif_ids)
+    
+    s3 = boto3.client('s3')
+    bucket = "fragment-gifs"
+    gif_urls = []
+    for gif_id in gif_ids:
+        key = f"{gif_id}"
+        try:
+            s3.head_object(Bucket=bucket, Key=key)
+            presigned_url = s3.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': bucket, 'Key': key},
+                ExpiresIn=10000
+            )
+            gif_urls.append(presigned_url)
+        except Exception as e:
+            print(f"Error generating presigned URL for {key}: {e}")
+            continue
+
+    return {"status": "success", "user_id": user_id, "gifs": gif_urls}
 
 def get_user_gifs_by_tag(user_id: str, tags: list[str]):
     dynamodb = boto3.resource('dynamodb')

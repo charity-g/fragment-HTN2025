@@ -1,7 +1,13 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch, faCog, faGem } from "@fortawesome/free-solid-svg-icons"
 
-export default function FragmentsPage() {
+// Next.js Server Component
+export default async function Page() {
+  // Fetch GIFs from backend
+  const res = await fetch("http://localhost:8000/users/system/gifs", { cache: "no-store" });
+  const data = await res.json();
+  const gifs: string[] = (data.gifs || []).map((gif: any) => gif.gif_link || gif.url || gif);
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
@@ -49,63 +55,26 @@ export default function FragmentsPage() {
         </div>
       </div>
 
-    <MasonryGrid videos={[]} />
+      <MasonryGrid gifs={gifs} />
     </div>
   )
 }
 
-function MasonryGrid({ videos }: { videos: any[] }) {
-
-    return (
-      <div className="p-6">
-        <div className="flex gap-4 h-screen">
-          {/* Column 1 */}
-          <div className="flex flex-col gap-4 flex-1">
-            <div className="bg-gray-800 rounded-lg aspect-square flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-600 rounded opacity-50"></div>
-            </div>
-            <div className="bg-gray-800 rounded-lg h-80 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-600 rounded opacity-50"></div>
-            </div>
+// Accept gifs prop and render images
+function MasonryGrid({ gifs }: { gifs: string[] }) {
+  return (
+    <div className="p-6">
+      <div className="flex gap-4 h-screen">
+        {[0, 1, 2].map(col => (
+          <div key={col} className="flex flex-col gap-4 flex-1">
+            {gifs.filter((_, i) => i % 3 === col).map((gifUrl, idx) => (
+              <div key={idx} className="bg-gray-800 rounded-lg flex items-center justify-center">
+                <img src={gifUrl} className="max-w-full max-h-full rounded" alt={'gif'} />
+              </div>
+            ))}
           </div>
-
-          {/* Column 2 */}
-          <div className="flex flex-col gap-4 flex-1">
-            <div className="bg-gray-800 rounded-lg h-64 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-600 rounded opacity-50"></div>
-            </div>
-            <div className="bg-gray-800 rounded-lg h-48 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-600 rounded opacity-50"></div>
-            </div>
-          </div>
-
-          {/* Column 3 */}
-          <div className="flex flex-col gap-4 flex-1">
-            <div className="bg-gray-800 rounded-lg h-48 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-600 rounded opacity-50"></div>
-            </div>
-            <div className="bg-gray-800 rounded-lg h-32 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-600 rounded opacity-50"></div>
-            </div>
-          </div>
-
-          {/* Column 4 */}
-          <div className="flex flex-col gap-4 flex-1">
-            <div className="bg-gray-800 rounded-lg h-96 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-600 rounded opacity-50"></div>
-            </div>
-          </div>
-
-          {/* Column 5 */}
-          <div className="flex flex-col gap-4 flex-1">
-            <div className="bg-gray-800 rounded-lg h-40 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-600 rounded opacity-50"></div>
-            </div>
-            <div className="bg-gray-800 rounded-lg h-52 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-600 rounded opacity-50"></div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
-    )
+    </div>
+  )
 }
