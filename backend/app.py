@@ -1,5 +1,6 @@
 # app.py
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Form
+from typing import List, Optional
 import uvicorn
 import os
 from fastapi.responses import JSONResponse
@@ -23,7 +24,10 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.post("/upload")
-async def upload_video(file: UploadFile = File(...)):
+async def upload_video(
+    file: UploadFile = File(...),
+    tags: Optional[List[str]] = Form(None)
+):
     task_id = str(uuid.uuid4())
     
     file_path = os.path.join(UPLOAD_DIR, file.filename)
@@ -34,9 +38,13 @@ async def upload_video(file: UploadFile = File(...)):
     # Upload to Amazon S3 using the utility function
     s3_bucket = "fragment-webm"
     s3_key = f"uploads/{file.filename}"
-    upload_file_to_s3(file_path, s3_bucket, s3_key)
-    
-    return {"status": "success", "task_id": task_id, "s3_key": s3_key}
+    metadata = {}
+    if tags:
+        # S3 metadata values must be strings
+        metadata['initial_tags'] = ','.join(tags)
+    upload_file_to_s3(file_path, s3_bucket, s3_key, ExtraArgs={"Metadata": metadata} if metadata else {})
+
+    return {"status": "success", "task_id": task_id, "s3_key": s3_key, "tags": tags}
 
 
 
