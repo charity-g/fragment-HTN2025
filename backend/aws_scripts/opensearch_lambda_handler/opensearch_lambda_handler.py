@@ -5,7 +5,7 @@ from requests_aws4auth import AWS4Auth
 
 region = 'us-east-1'
 service = 'es'
-host = 'https://search-your-domain.us-east-1.es.amazonaws.com'
+host = 'https://fragment-opensearch.us-east-1.es.amazonaws.com'
 
 credentials = boto3.Session().get_credentials()
 awsauth = AWS4Auth(
