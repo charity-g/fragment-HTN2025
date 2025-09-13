@@ -11,6 +11,10 @@ import sys
 
 from s3_utils import upload_file_to_s3
 
+
+from routes import videos, users
+
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -67,18 +71,8 @@ async def upload_video(
     }
 
 
-@app.get("/videos/{id}")
-async def get_video(id: str):
-    # Here you would implement the logic to retrieve the video processing status
-    # For now, we'll just return a dummy response
-    return {"status": "success", "task_id": task_id, "video_url": f"http://localhost:8000/videos/{task_id}.mp4"}
-
-@app.get("/users/{user_id}/videos")
-async def get_user_videos(user_id: str):
-    # Here you would implement the logic to retrieve all videos for a user
-    # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": user_id, "videos": []}
-
+app.include_router(videos.router, prefix="/videos", tags=["videos"])
+app.include_router(users.router, prefix="/users", tags=["users"])
 
 if __name__ == "__main__":
     if len(sys.argv) >= 1 and sys.argv[0] == "dev":
