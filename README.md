@@ -1,4 +1,4 @@
 # fragment-HTN2025
-fragment
-
-By: Donald, Paul, Charity & Rayna
+app: fragment
+hacakthon: hack the north 2025
+people: donald, paul, rayna, charity
