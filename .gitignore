@@ -7,6 +7,8 @@ backend/uploads/*
 
 aws_s3/.venv
 aws_s3/__pycache__/
+aws_s3/*/package
+aws_s3/lambda-*.zip
 
 # macOS
 .DS_Store
