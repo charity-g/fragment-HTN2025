@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Form
 from fastapi.responses import JSONResponse
 import boto3
+from typing import Dict
 
 router = APIRouter()
 
@@ -67,7 +68,7 @@ async def update_video_tags(video_id: str, tags: list[str]):
 
 
 @router.put("/{video_id}/visibility")
-async def update_video_visibility(video_id: str, visibility: bool):
+async def update_video_visibility(video_id: str, visibility: bool = Form(...)):
     "update video visibility"
     try:
         table.update_item(
@@ -78,6 +79,23 @@ async def update_video_visibility(video_id: str, visibility: bool):
         return JSONResponse(
             status_code=200,
             content={"status": "success", "video_id": video_id, "is_public": visibility}
+        )
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
+
+@router.put("/{video_id}/star")
+async def update_video_star(video_id: str, star: bool = Form(...)):
+    "update video star"
+    try:
+        table.update_item(
+            Key={'video_id': video_id},
+            UpdateExpression="SET is_starred = :s",
+            ExpressionAttributeValues={':s': star}
+        )
+        return JSONResponse(
+            status_code=200,
+            content={"status": "success", "video_id": video_id, "is_starred": star}
         )
     except Exception as e:
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
