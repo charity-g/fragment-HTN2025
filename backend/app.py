@@ -57,7 +57,7 @@ async def upload_video(
         metadata['user_id'] = user_id
 
     s3_bucket = "fragment-webm"
-    s3_key = f"uploads/{title if title else task_id}"
+    s3_key = f"uploads/{title if title else task_id}/.webm"
     upload_file_to_s3(file_path, s3_bucket, s3_key, metadata=metadata if metadata else None)
 
     return {
