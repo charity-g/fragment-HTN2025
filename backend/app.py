@@ -44,9 +44,20 @@ async def upload_video(
         metadata['initial_tags'] = ','.join(tags)
     upload_file_to_s3(file_path, s3_bucket, s3_key, ExtraArgs={"Metadata": metadata} if metadata else {})
 
-    return {"status": "success", "task_id": task_id, "s3_key": s3_key, "tags": tags}
+    return {"status": "success", "task_id": task_id, "s3_key": s3_key}
 
 
+@app.get("/videos/{id}")
+async def get_video(id: str):
+    # Here you would implement the logic to retrieve the video processing status
+    # For now, we'll just return a dummy response
+    return {"status": "success", "task_id": task_id, "video_url": f"http://localhost:8000/videos/{task_id}.mp4"}
+
+@app.get("/users/{user_id}/videos")
+async def get_user_videos(user_id: str):
+    # Here you would implement the logic to retrieve all videos for a user
+    # For now, we'll just return a dummy response
+    return {"status": "success", "user_id": user_id, "videos": []}
 
 
 if __name__ == "__main__":
@@ -54,3 +65,17 @@ if __name__ == "__main__":
         uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
     else:
         uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
