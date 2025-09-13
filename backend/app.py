@@ -13,13 +13,17 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
+    task_id = str(uuid.uuid4())
+    
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     
-    # Save file to disk
+
     with open(file_path, "wb") as f:
         f.write(await file.read())
+    payload = VideoTaskRequest(task_id=task_id, input_path=file_path, operation="transcode")
     
-    return {"status": "success", "filename": file.filename}
+    # TOOD
+    return {"status": "success", "task_id": task_id}
 
 
 

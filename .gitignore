@@ -2,4 +2,7 @@
 # python specific ignores
 ./backend/*/__pycache__/
 ./backend/.venv
-/backend/uploads/*
+./backend/uploads/*
+
+./aws_s3/.venv
+./aws_s3/__pycache__/

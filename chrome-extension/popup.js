@@ -56,7 +56,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "video-element-recording.webm";
+        a.download = "video-element-recording.webm"; 
         a.click();
       };
       recorder.start(2000);
