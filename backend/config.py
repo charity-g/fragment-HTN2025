@@ -1,5 +1,6 @@
-from pydantic import field_validator
 from pydantic_settings import BaseSettings
+from pydantic import validator
+
 
 class Settings(BaseSettings):
     auth0_audience: str

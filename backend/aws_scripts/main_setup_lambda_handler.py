@@ -31,12 +31,7 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
                 'OutputGroupSettings': {
                     'Type': 'FILE_GROUP_SETTINGS',
                     'FileGroupSettings': {
-<<<<<<<< HEAD:backend/aws_scripts/main_setup_lambda_handler.py
-                        # hardcode for now TODO
-========
-                        # hardcoded TODO but works on paul's
->>>>>>>> ace1207 (setup next frontend):backend/aws_s3/main_setup_lambda_handler.py
-                        'Destination': 's3://fragment-gifs/'
+                        'Destination': output_s3_uri
                     }
                 },
                 'Outputs': [{
@@ -118,7 +113,7 @@ def lambda_handler(event, context):
         
         # Convert to GIF using MediaConvert
         input_s3_uri = f's3://{bucket}/{key}'
-        output_s3_uri = f's3://fragment-gifs/gifs/{video_id}.gif'
+        output_s3_uri = f's3://fragment-gifs/{video_id}.gif'
         
         try:
             job_id = create_gif_with_mediaconvert(input_s3_uri, output_s3_uri)
@@ -127,12 +122,16 @@ def lambda_handler(event, context):
             # Wait for job completion (max 5 minutes)
             if wait_for_job_completion(job_id, max_wait_seconds=300):
                 print(f"GIF conversion completed successfully!")
+<<<<<<< HEAD
                 # Generate pre-signed URL (valid for 1 hour)
                 gif_link = s3.generate_presigned_url(
                     'get_object',
-                    Params={'Bucket': 'fragment-gifs', 'Key': f'gifs/{video_id}.gif'},
+                    Params={'Bucket': 'fragment-gifs', 'Key': f'{video_id}.gif'},
                     ExpiresIn=3600
                 )
+=======
+                gif_link = output_s3_uri
+>>>>>>> main
             else:
                 print(f"GIF conversion failed or timed out")
                 gif_link = f'error'  # Placeholder
@@ -151,8 +150,6 @@ def lambda_handler(event, context):
         dynamo_item = {
             'video_id': video_id,
             'tags': [],
-            'description': response['Metadata'].get('description', None),
-            'source_link': response['Metadata'].get('source_link', None),
             'user_id': response['Metadata'].get('user_id', 'system'),
             'is_public': False,  # default to private
             'gif_link': gif_link,
@@ -166,7 +163,11 @@ def lambda_handler(event, context):
             dynamo_item['tags'] = initial_tags.split(',') if initial_tags else []
         except Exception:
             dynamo_item['tags'] = []
-        
+
+        for key in ['title', 'description', 'source_link']:
+            if (key in response['Metadata']):
+                dynamo_item[key] = response['Metadata'].get(key, None)
+
         table.put_item(Item=dynamo_item)
         print(f"Saved to DynamoDB: {video_id}")
         

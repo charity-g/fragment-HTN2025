@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17"		 	 	 ,
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::348076083335:user/fragment-htn"
+        ]
+      },
+      "Action": [
+        "es:*"
+      ],
+      "Resource": "arn:aws:es:us-east-1:348076083335:domain/test-domain/*"
+    }
+  ]
+}

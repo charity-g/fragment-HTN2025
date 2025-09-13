@@ -48,6 +48,9 @@ pydantic==2.11.9
 pydantic_core==2.33.2
 pyflakes==3.0.1
 PyJWT==2.4.0
+pydantic
+pydantic_core
+pydantic-settings
 python-dateutil==2.9.0.post0
 python-dotenv==0.21.0
 python-multipart==0.0.20
@@ -66,4 +69,17 @@ typing-inspection==0.4.1
 typing_extensions==4.15.0
 urllib3==1.26.20
 uvicorn==0.35.0
+black==22.12.0
+cffi==1.15.1
+cryptography==41.0.0
+flake8==6.0.0
+isort==5.11.4
+pre-commit==2.21.0
+pycparser==2.21
+PyJWT==2.4.0
+python-dotenv==0.21.0
+secure==0.3.0
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
+opensearch-py
+requests-aws4auth
 virtualenv==20.34.0

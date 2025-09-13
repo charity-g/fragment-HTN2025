@@ -34,3 +34,4 @@ aws s3api get-bucket-notification-configuration --bucket fragment-webm
 
 # check invocations of lambda function ConvertWebMToVideoFormats
 aws cloudwatch get-metric-statistics --namespace AWS/Lambda --metric-name Invocations --dimensions Name=FunctionName,Value=ConvertWebMToVideoFormats --start-time 2023-01-01T00:00:00Z --end-time 2023-01-02T00:00:00Z --period 86400 --statistics Sum
+

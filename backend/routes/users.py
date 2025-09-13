@@ -1,43 +1,93 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-import uuid
+import boto3
+from datetime import datetime
+import os
 
 router = APIRouter()
 
+# Initialize DynamoDB
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+users_table = dynamodb.Table('users')
+
 class User(BaseModel):
+    user_id: str  # Auth0 sub
+    email: str
     name: str
+    picture: str = None
+    username: str = None
 
+class UserResponse(BaseModel):
+    user_id: str
+    email: str
+    name: str
+    picture: str = None
+    username: str = None
+    created_at: str
+    updated_at: str
 
-@router.post("/create")
+@router.post("/create", response_model=UserResponse)
 async def create_user(user: User):
-    # Here you would implement the logic to create a new user
-    # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": str(uuid.uuid4()), "name": user.name}
-
-@router.post("/login")
-async def login_user(user: User):
-    # Here you would implement the logic to log in a user
-    # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": str(uuid.uuid4()), "name": user.name}
-
-@router.post("/{user_id}/follow/")
-async def follow_user(user_id: str):
-    # Here you would implement the logic to follow a user
-    # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": user_id, "action": "followed"}
-
-@router.get("/{user_id}/gifs")
-async def get_user_gifs(user_id: str):
-    # Here you would implement the logic to retrieve all GIFs for a user
-    # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": user_id, "gifs": []}
-
-@router.get("/{user_id}")
-async def get_user(user_id: str):
-    # Here you would implement the logic to retrieve user details
-    # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": user_id, "name": "John Doe"}
+    try:
+        # Check if user already exists
+        existing_user = users_table.get_item(Key={'user_id': user.user_id})
+        
+        if 'Item' in existing_user:
+            # User exists, update their info
+            users_table.update_item(
+                Key={'user_id': user.user_id},
+                UpdateExpression='SET email = :email, #name = :name, picture = :picture, username = :username, updated_at = :updated_at',
+                ExpressionAttributeNames={
+                    '#name': 'name'
+                },
+                ExpressionAttributeValues={
+                    ':email': user.email,
+                    ':name': user.name,
+                    ':picture': user.picture,
+                    ':username': user.username,
+                    ':updated_at': datetime.utcnow().isoformat()
+                }
+            )
+            return UserResponse(
+                user_id=user.user_id,
+                email=user.email,
+                name=user.name,
+                picture=user.picture,
+                username=user.username,
+                created_at=existing_user['Item'].get('created_at', datetime.utcnow().isoformat()),
+                updated_at=datetime.utcnow().isoformat()
+            )
+        else:
+            # New user, create them
+            user_item = {
+                'user_id': user.user_id,
+                'email': user.email,
+                'name': user.name,
+                'picture': user.picture,
+                'username': user.username,
+                'created_at': datetime.utcnow().isoformat(),
+                'updated_at': datetime.utcnow().isoformat()
+            }
             
+            users_table.put_item(Item=user_item)
+            
+            return UserResponse(**user_item)
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating/updating user: {str(e)}")
+
+@router.get("/{user_id}", response_model=UserResponse)
+async def get_user(user_id: str):
+    try:
+        response = users_table.get_item(Key={'user_id': user_id})
+        
+        if 'Item' not in response:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        return UserResponse(**response['Item'])
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving user: {str(e)}")
 
 @router.post("/{user_id}/follow/")
 async def follow_user(user_id: str):
@@ -46,13 +96,61 @@ async def follow_user(user_id: str):
     return {"status": "success", "user_id": user_id, "action": "followed"}
 
 @router.get("/{user_id}/gifs")
-async def get_user_gifs(user_id: str):
-    # Here you would implement the logic to retrieve all GIFs for a user
-    # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": user_id, "gifs": []}
+async def get_user_gifs(user_id: str, tags: list[str] = Query(None)):
+    # If tags is not None and not empty, search by tags using DynamoDB (example query)
+    if tags and len(tags) > 0:
+        print("Searching gifs for user", user_id, "by tags:", tags)
+        return get_user_gifs_by_tag(user_id, tags)
+    
+    # get dynamo db items where user_id matches
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('fragments')
+    response = table.scan(
+        FilterExpression="user_id = :uid",
+        ExpressionAttributeValues={":uid": user_id}
+    )
+    video_ids =  response.get("Items", [])
+    gif_ids = [item['video_id'] + ".gif_gif.gif" for item in video_ids if 'video_id' in item]
+    print(video_ids, gif_ids)
+    
+    s3 = boto3.client('s3')
+    bucket = "fragment-gifs"
+    gif_urls = []
+    for gif_id in gif_ids:
+        key = f"{gif_id}"
+        try:
+            s3.head_object(Bucket=bucket, Key=key)
+            presigned_url = s3.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': bucket, 'Key': key},
+                ExpiresIn=10000
+            )
+            gif_urls.append(presigned_url)
+        except Exception as e:
+            print(f"Error generating presigned URL for {key}: {e}")
+            continue
 
-@router.get("/{user_id}")
-async def get_user(user_id: str):
+    return {"status": "success", "user_id": user_id, "gifs": gif_urls}
+
+def get_user_gifs_by_tag(user_id: str, tags: list[str]):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('fragments')
+    # Example: Scan for items where tags attribute contains any of the provided tags
+    # Note: For production, use OpenSearch for more advanced queries
+    response = table.scan(
+        FilterExpression="user_id = :uid AND (contains(tags, :tag0)" +
+        "".join([f" OR contains(tags, :tag{i})" for i in range(1, len(tags))]) + ")",
+        ExpressionAttributeValues={
+            **{f":tag{i}": tag for i, tag in enumerate(tags)},
+            ":uid": user_id
+        }
+    )
+    gifs = response.get("Items", [])
+    return {"status": "success", "user_id": user_id, "gifs": gifs}
+
+
+@router.get("/{user_id}/tags")
+async def get_user_tags(user_id: str):
     # Here you would implement the logic to retrieve user details
     # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": user_id, "name": "John Doe"}
+    return {"status": "success", "user_id": user_id, "gifs": []}

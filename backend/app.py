@@ -1,5 +1,5 @@
 # app.py
-from fastapi import FastAPI, File, UploadFile, Form, Depends
+from fastapi import FastAPI, File, UploadFile, Form, Depends, Query
 from typing import List, Optional
 import uvicorn
 import os
@@ -45,7 +45,7 @@ async def set_secure_headers(request, call_next):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.client_origin_url, "*"],  # TODO allow all for development
-    allow_methods=["GET"],
+    allow_methods=["GET", "PUT", "POST", "OPTIONS"],  # <-- add POST and OPTIONS
     allow_headers=["Authorization", "Content-Type"],
     max_age=86400,
 )
@@ -56,7 +56,6 @@ async def http_exception_handler(request, exc):
     message = str(exc.detail)
 
     return JSONResponse({"message": message}, status_code=exc.status_code)
-
 
 
 UPLOAD_DIR = "uploads"
@@ -114,7 +113,6 @@ async def upload_video(
         "user_id": user_id,
     }
 
-
 app.include_router(videos.router, prefix="/videos", tags=["videos"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 
@@ -125,14 +123,14 @@ if __name__ == "__main__":
         uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
-if __name__ == "__main__":
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=settings.port,
-        reload=settings.reload,
-        server_header=False,
-    )
+# if __name__ == "__main__":
+#     uvicorn.run(
+#         app,
+#         host="0.0.0.0",
+#         port=settings.port,
+#         reload=settings.reload,
+#         server_header=False,
+#     )
 
 
 
