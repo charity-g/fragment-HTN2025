@@ -1,11 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Fragments",
+  "name": "Fragments Recorder",
   "version": "1.0",
-  "description": "Store inspirations",
-  "permissions": ["tabCapture", "storage", "activeTab", "scripting"],
+  "permissions": ["tabCapture", "scripting", "activeTab"],
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "popup.html"
   },
-  "host_permissions": ["<all_urls>"]
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
 }
