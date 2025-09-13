@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from models.video import VideoTaskRequest, VideoTaskStatus, VideoTaskResult
 import uuid
+import sys
 
 from s3_utils import upload_file_to_s3
 
@@ -31,7 +32,7 @@ async def upload_video(file: UploadFile = File(...)):
     payload = VideoTaskRequest(task_id=task_id, input_path=file_path, operation="transcode")
     
     # Upload to Amazon S3 using the utility function
-    s3_bucket = "fragment_webm"
+    s3_bucket = "fragment-webm"
     s3_key = f"uploads/{file.filename}"
     upload_file_to_s3(file_path, s3_bucket, s3_key)
     

@@ -2,7 +2,7 @@ import boto3
 
 s3 = boto3.resource('s3')
 
-s3_bucket = "fragment_webm"
+s3_bucket = "fragment-webm"
 prefix = "uploads/"
 
 bucket = s3.Bucket(s3_bucket)
