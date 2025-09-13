@@ -1,5 +1,5 @@
 # app.py
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, Depends
 from typing import List, Optional
 import uvicorn
 import os
@@ -8,21 +8,55 @@ from fastapi.middleware.cors import CORSMiddleware
 from models.video import VideoTaskRequest, VideoTaskStatus, VideoTaskResult
 import uuid
 import sys
-
+import secure
+import uvicorn
+from config import settings
+from dependencies import PermissionsValidator, validate_token
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from s3_utils import upload_file_to_s3
-
-
 from routes import videos, users
 
 
 app = FastAPI()
+
+csp = secure.ContentSecurityPolicy().default_src("'self'").frame_ancestors("'none'")
+hsts = secure.StrictTransportSecurity().max_age(31536000).include_subdomains()
+referrer = secure.ReferrerPolicy().no_referrer()
+cache_value = secure.CacheControl().no_cache().no_store().max_age(0).must_revalidate()
+x_frame_options = secure.XFrameOptions().deny()
+
+secure_headers = secure.Secure(
+    csp=csp,
+    hsts=hsts,
+    referrer=referrer,
+    cache=cache_value,
+    xfo=x_frame_options,
+)
+
+
+@app.middleware("http")
+async def set_secure_headers(request, call_next):
+    response = await call_next(request)
+    secure_headers.framework.fastapi(response)
+    return response
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development, allow all origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[settings.client_origin_url, "*"],  # TODO allow all for development
+    allow_methods=["GET"],
+    allow_headers=["Authorization", "Content-Type"],
+    max_age=86400,
 )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    message = str(exc.detail)
+
+    return JSONResponse({"message": message}, status_code=exc.status_code)
+
+
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -33,7 +67,7 @@ async def upload_video(
     title: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
-    source_link: Optional[str] = Form(None),
+    sourceURL: Optional[str] = Form(None),
     user_id: Optional[str] = Form(None)
 ):
     video_id = str(uuid.uuid4())
@@ -50,9 +84,17 @@ async def upload_video(
         metadata['description'] = description
     if tags:
         # tags can be a comma-separated string or array, store as string
-        metadata['initial_tags'] = tags if isinstance(tags, str) else ','.join(tags)
-    if source_link:
-        metadata['source_link'] = source_link
+        initial_tags = []
+        if isinstance(tags, str):
+            raw_tags = [tag.strip() for tag in tags.split(',')]
+        else:
+            raw_tags = [tag.strip() for tag in tags]
+        for tag in raw_tags:
+            # Split tags with spaces into multiple tags
+            initial_tags.extend([t for t in tag.split() if t])
+        metadata['initial_tags'] = ','.join(initial_tags)
+    if sourceURL:
+        metadata['source_link'] = sourceURL
     if user_id:
         metadata['user_id'] = user_id
 
@@ -82,13 +124,14 @@ if __name__ == "__main__":
         uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=settings.port,
+        reload=settings.reload,
+        server_header=False,
+    )
 
 
 
