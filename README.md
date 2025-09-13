@@ -2,3 +2,7 @@
 app: fragment
 hacakthon: hack the north 2025
 people: donald, paul, rayna, charity
+
+about: 
+you create what you consume. you are your inspiration.
+let us be the place for your mind.
