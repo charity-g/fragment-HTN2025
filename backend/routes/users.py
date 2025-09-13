@@ -3,11 +3,11 @@ from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
-@app.get("/{user_id}/videos")
-async def get_user_videos(user_id: str):
-    # Here you would implement the logic to retrieve all videos for a user
+@app.get("/{user_id}/gifs")
+async def get_user_gifs(user_id: str):
+    # Here you would implement the logic to retrieve all GIFs for a user
     # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": user_id, "videos": []}
+    return {"status": "success", "user_id": user_id, "gifs": []}
 
 @app.get("/{user_id}")
 async def get_user(user_id: str):
