@@ -4,7 +4,8 @@ from app.models.video import VideoTaskRequest, VideoTaskStatus, VideoTaskResult
 import uuid
 
 router = APIRouter()
-
+# add in app.py when ready
+# app.include_router(video.router, prefix="/video", tags=["video"])
 
 @router.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
