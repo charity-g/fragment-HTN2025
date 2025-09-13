@@ -220,6 +220,7 @@ function injectButtons() {
             title: form.querySelector("#recTitle").value,
             description: form.querySelector("#recDesc").value,
             tags: form.querySelector("#recTags").value,
+            sourceURL: window.location.href,
           };
           uploadToBackend(blob, metadata);
           form.remove();
