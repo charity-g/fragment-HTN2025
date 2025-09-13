@@ -70,14 +70,7 @@ function MasonryGrid({ gifs }: { gifs: gifObject[] }) {
         {[0, 1, 2, 3, 4].map(col => (
           <div key={col} className="flex flex-col gap-4 flex-1">
             {gifs.filter((_, i) => i % 5 === col).map(({gif_url}, idx) => (
-              <div key={idx} className="bg-gray-800 rounded-lg flex items-center justify-center">
-                {/* Use <video> for infinite loop if the gifUrl is a gif */}
-                {gif_url.endsWith('.gif') ? (
-                  <video src={gif_url} autoPlay loop muted playsInline className="min-w-full h-auto rounded" />
-                ) : (
-                  <img src={gif_url} className="min-w-full h-auto rounded" alt={'gif'} />
-                )}
-              </div>
+              <GifComponent key={idx} gifUrl={gif_url} />
             ))}
           </div>
         ))}
@@ -85,6 +78,17 @@ function MasonryGrid({ gifs }: { gifs: gifObject[] }) {
     </div>
   )
 }
+
+function GifComponent({ gifUrl }: { gifUrl: string }) {
+  return (<div className="bg-gray-800 rounded-lg flex items-center justify-center">
+        {gifUrl.endsWith('.gif') ? (
+          <video src={gifUrl} autoPlay loop muted playsInline style={{ width: "100%", height: "auto", objectFit: "cover" }} className="rounded" />
+        ) : (
+          <img src={gifUrl} style={{ width: "100%", height: "auto", objectFit: "cover" }} className="rounded" alt={'gif'} />
+        )}
+      </div>)
+}
+
 
 type gifObject = {
   gif_url: string;
