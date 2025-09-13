@@ -26,7 +26,10 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @app.post("/upload")
 async def upload_video(
     file: UploadFile = File(...),
-    tags: Optional[List[str]] = Form(None)
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None),
+    user_id: Optional[str] = Form(None)
 ):
     task_id = str(uuid.uuid4())
     
@@ -35,16 +38,31 @@ async def upload_video(
         f.write(await file.read())
     payload = VideoTaskRequest(task_id=task_id, input_path=file_path, operation="transcode")
     
-    # Upload to Amazon S3 using the utility function
+    # Prepare S3 metadata
+    metadata = {}
+    if title:
+        metadata['title'] = title
+    if description:
+        metadata['description'] = description
+    if tags:
+        # tags can be a comma-separated string or array, store as string
+        metadata['tags'] = tags if isinstance(tags, str) else ','.join(tags)
+    if user_id:
+        metadata['user_id'] = user_id
+
     s3_bucket = "fragment-webm"
     s3_key = f"uploads/{file.filename}"
-    metadata = {}
-    if tags:
-        # S3 metadata values must be strings
-        metadata['initial_tags'] = ','.join(tags)
-    upload_file_to_s3(file_path, s3_bucket, s3_key, ExtraArgs={"Metadata": metadata} if metadata else {})
+    upload_file_to_s3(file_path, s3_bucket, s3_key, metadata=metadata if metadata else None)
 
-    return {"status": "success", "task_id": task_id, "s3_key": s3_key}
+    return {
+        "status": "success",
+        "task_id": task_id,
+        "s3_key": s3_key,
+        "title": title,
+        "description": description,
+        "tags": tags,
+        "user_id": user_id
+    }
 
 
 @app.get("/videos/{id}")
