@@ -62,6 +62,36 @@ def create_lambda_role(role_name, policy_arn):
     )
     return role['Role']['Arn']
 
+LAMBDA_FUNCTION_NAME = "ConvertWebMToVideoFormats"
+ROLE_ARN = get_role_arn("LambdaS3Role")
+HANDLER = "main.lambda_handler"  # main.py or main_setup_lambda.py depending on your zip
+RUNTIME = "python3.9"
+LAMBDA_ZIP_PATH = "lambda_function.zip"  # Path to your zipped lambda code
+
+
+# YOU MUST RUN !!! Compress-Archive -Path main_setup_lambda_handler.py -DestinationPath lambda_function.zip
+def create_lambda_function():
+  with open(LAMBDA_ZIP_PATH, "rb") as f:
+      zipped_code = f.read()
+
+  lambda_client = boto3.client('lambda')
+  try:
+      response = lambda_client.create_function(
+          FunctionName=LAMBDA_FUNCTION_NAME,
+          Runtime=RUNTIME,
+          Role=ROLE_ARN,
+          Handler=HANDLER,
+          Code={'ZipFile': zipped_code},
+          Description='Lambda triggered by S3 events',
+          Timeout=60,
+          MemorySize=128,
+          Publish=True,
+      )
+      print("Lambda function created:", response['FunctionArn'])
+  except lambda_client.exceptions.ResourceConflictException:
+      print("Lambda function already exists.")
+
+
 def get_policy_arn(policy_name):
     iam = boto3.client('iam')
     paginator = iam.list_policies(Scope='Local')
@@ -88,80 +118,39 @@ def get_role_arn(role_name):
 
 # Example usage: Create Lambda function
 # YOU MUST RUN !!! Compress-Archive -Path main_setup_lambda_handler.py -DestinationPath lambda_function.zip
-LAMBDA_FUNCTION_NAME = "ConvertWebMToVideoFormats"
-ROLE_ARN = get_role_arn("LambdaS3Role")
-HANDLER = "main.lambda_handler"  # main.py or main_setup_lambda.py depending on your zip
-RUNTIME = "python3.9"
-LAMBDA_ZIP_PATH = "lambda_function.zip"  # Path to your zipped lambda code
-
-with open(LAMBDA_ZIP_PATH, "rb") as f:
-    zipped_code = f.read()
-
-lambda_client = boto3.client('lambda')
-try:
-    response = lambda_client.create_function(
-        FunctionName=LAMBDA_FUNCTION_NAME,
-        Runtime=RUNTIME,
-        Role=ROLE_ARN,
-        Handler=HANDLER,
-        Code={'ZipFile': zipped_code},
-        Description='Lambda triggered by S3 events',
-        Timeout=60,
-        MemorySize=128,
-        Publish=True,
-    )
-    print("Lambda function created:", response['FunctionArn'])
-except lambda_client.exceptions.ResourceConflictException:
-    print("Lambda function already exists.")
+lambda_fn_arn = create_lambda_function()
 
 # Example Usage: S3 trigger setup
-# BUCKET_NAME = "your-bucket-name"
-# REGION = "us-east-1"
-# notification_config = {
-#     'LambdaFunctionConfigurations': [
-#         {
-#             'LambdaFunctionArn': response['FunctionArn'],
-#             'Events': ['s3:ObjectCreated:*'],
-#             # Optionally, add a filter for specific prefix/suffix
-#             # 'Filter': {
-#             #     'Key': {
-#             #         'FilterRules': [
-#             #             {'Name': 'suffix', 'Value': '.webm'}
-#             #         ]
-#             #     }
-#             # }
-#         }
-#     ]
-# }
+BUCKET_NAME = "fragment-webm"
+REGION = "us-east-1"
+notification_config = {
+    'LambdaFunctionConfigurations': [
+        {
+            'LambdaFunctionArn': response['FunctionArn'],
+            'Events': ['s3:ObjectCreated:*'],
+            # Optionally, add a filter for specific prefix/suffix
+            # 'Filter': {
+            #     'Key': {
+            #         'FilterRules': [
+            #             {'Name': 'suffix', 'Value': '.webm'}
+            #         ]
+            #     }
+            # }
+        }
+    ]
+}
 
-# s3_client = boto3.client('s3')
-# s3_client.put_bucket_notification_configuration(
-#     Bucket=BUCKET_NAME,
-#     NotificationConfiguration=notification_config
-# )
+s3_client = boto3.client('s3')
+s3_client.put_bucket_notification_configuration(
+    Bucket=BUCKET_NAME,
+    NotificationConfiguration=notification_config
+)
 
-# # Grant S3 permission to invoke Lambda
-# lambda_client.add_permission(
-#     FunctionName=LAMBDA_FUNCTION_NAME,
-#     StatementId='AllowS3Invoke',
-#     Action='lambda:InvokeFunction',
-#     Principal='s3.amazonaws.com',
-#     SourceArn=f'arn:aws:s3:::{BUCKET_NAME}'
-# )
-
-# def lambda_handler(event, context):
-#     # Example Lambda handler for S3 event
-#     s3 = boto3.client('s3')
-#     # Get bucket and key from event
-#     bucket = event['Records'][0]['s3']['bucket']['name']
-#     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
-#     print(f"Triggered by upload to bucket: {bucket}, key: {key}")
-#     try:
-#         response = s3.get_object(Bucket=bucket, Key=key)
-#         print("CONTENT TYPE:", response['ContentType'])
-#         # Add your processing logic here (e.g., convert video, move file, etc.)
-#         return {"status": "success", "bucket": bucket, "key": key, "content_type": response['ContentType']}
-#     except Exception as e:
-#         print("Error getting object:", e)
-#         raise e
-
+# Grant S3 permission to invoke Lambda
+lambda_client.add_permission(
+    FunctionName=LAMBDA_FUNCTION_NAME,
+    StatementId='AllowS3Invoke',
+    Action='lambda:InvokeFunction',
+    Principal='s3.amazonaws.com',
+    SourceArn=f'arn:aws:s3:::{BUCKET_NAME}'
+)
