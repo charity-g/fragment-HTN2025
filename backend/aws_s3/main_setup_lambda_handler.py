@@ -38,9 +38,8 @@ def lambda_handler(event, context):
         print(f"Saved to DynamoDB: {video_id}")
         
         return {
-            "status": "success",
-            "video_id": video_id,
-            "message": "Saved to DynamoDB!"
+            'statusCode': 200,
+            'body': {'message': f'Successfully processed {key} from {bucket} and saved to DynamoDB.', 'video_id': video_id  }
         }
     except Exception as e:
         print(e)
@@ -49,8 +48,8 @@ def lambda_handler(event, context):
             bucket if 'bucket' in locals() else 'unknown'
         ))  
         return {
-            "status": "error",
-            "error": str(e)
+            'statusCode': 400,
+            'body': str(e)
         }
 
 # To invoke this Lambda function manually using AWS CLI:
