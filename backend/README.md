@@ -24,3 +24,6 @@ docker build -t backend-app .
 docker run -p 8000:8000 backend-app
 ```
 Access the backend at [http://localhost:8000](http://localhost:8000)
+
+
+

@@ -31,8 +31,7 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
                 'OutputGroupSettings': {
                     'Type': 'FILE_GROUP_SETTINGS',
                     'FileGroupSettings': {
-                        # hardcode for now TODO
-                        'Destination': 's3://fragment-gifs/'
+                        'Destination': output_s3_uri
                     }
                 },
                 'Outputs': [{
@@ -114,7 +113,7 @@ def lambda_handler(event, context):
         
         # Convert to GIF using MediaConvert
         input_s3_uri = f's3://{bucket}/{key}'
-        output_s3_uri = f's3://fragment-gifs/gifs/{video_id}.gif'
+        output_s3_uri = f's3://fragment-gifs/{video_id}.gif'
         
         try:
             job_id = create_gif_with_mediaconvert(input_s3_uri, output_s3_uri)
@@ -123,7 +122,16 @@ def lambda_handler(event, context):
             # Wait for job completion (max 5 minutes)
             if wait_for_job_completion(job_id, max_wait_seconds=300):
                 print(f"GIF conversion completed successfully!")
+<<<<<<< HEAD
+                # Generate pre-signed URL (valid for 1 hour)
+                gif_link = s3.generate_presigned_url(
+                    'get_object',
+                    Params={'Bucket': 'fragment-gifs', 'Key': f'{video_id}.gif'},
+                    ExpiresIn=3600
+                )
+=======
                 gif_link = output_s3_uri
+>>>>>>> main
             else:
                 print(f"GIF conversion failed or timed out")
                 gif_link = f'error'  # Placeholder
