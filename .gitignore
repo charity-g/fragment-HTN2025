@@ -1,8 +1,9 @@
-
 # python specific ignores
-./backend/*/__pycache__/
-./backend/.venv
-./backend/uploads/*
+backend/__pycache__/
+backend/models/__pycache__/
+backend/**/__pycache__/
+backend/.venv
+backend/uploads/*
 
-./aws_s3/.venv
-./aws_s3/__pycache__/
+aws_s3/.venv
+aws_s3/__pycache__/
