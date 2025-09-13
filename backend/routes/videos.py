@@ -36,3 +36,10 @@ async def get_mp4(video_id: str):
     url = get_presigned_url(VIDEO_BUCKET, key)
     return {"status": "success", "task_id": video_id, "video_url": url}
 
+@router.put("/{video_id}/tags")
+async def update_video_tags(video_id: str, tags: list[str]):
+    "update video tags"
+    key = f"uploads/{video_id}.webm"
+    url = get_presigned_url(VIDEO_BUCKET, key)
+    # //TODO MUST BE USING DYNAMODB not s3
+    return {"status": "success", "task_id": video_id, "video_url": url}

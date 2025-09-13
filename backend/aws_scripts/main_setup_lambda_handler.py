@@ -31,7 +31,8 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
                 'OutputGroupSettings': {
                     'Type': 'FILE_GROUP_SETTINGS',
                     'FileGroupSettings': {
-                        'Destination': output_s3_uri.replace('/gif', '')
+                        # hardcode for now TODO
+                        'Destination': 's3://fragment-gifs/'
                     }
                 },
                 'Outputs': [{
@@ -117,7 +118,7 @@ def lambda_handler(event, context):
         
         try:
             job_id = create_gif_with_mediaconvert(input_s3_uri, output_s3_uri)
-            print(f"MediaConvert job created: {job_id}")
+            print(f"MediaConvert job created: {job_id} for video {video_id}")
             
             # Wait for job completion (max 5 minutes)
             if wait_for_job_completion(job_id, max_wait_seconds=300):
@@ -140,7 +141,7 @@ def lambda_handler(event, context):
         # Write to DynamoDB - Full video record
         dynamo_item = {
             'video_id': video_id,
-            'tags': response['Metadata'].get('initial_tags', []),
+            'tags': [],
             'description': response['Metadata'].get('description', None),
             'source_link': response['Metadata'].get('source_link', None),
             'user_id': response['Metadata'].get('user_id', 'system'),
@@ -151,6 +152,11 @@ def lambda_handler(event, context):
             'created_at': timestamp,
             'updated_at': timestamp
         }
+        try:
+            initial_tags = response['Metadata'].get('initial_tags', '')
+            dynamo_item['tags'] = initial_tags.split(',') if initial_tags else []
+        except Exception:
+            dynamo_item['tags'] = []
         
         table.put_item(Item=dynamo_item)
         print(f"Saved to DynamoDB: {video_id}")

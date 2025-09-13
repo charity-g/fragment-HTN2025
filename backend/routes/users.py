@@ -1,12 +1,12 @@
 from fastapi import APIRouter
+from pydantic import BaseModel
 import uuid
 
 router = APIRouter()
 
-class User:
-    def __init__(self, name: str):
-        self.name = name
-        self.id = str(uuid.uuid4())
+class User(BaseModel):
+    name: str
+
 
 @router.post("/create")
 async def create_user(user: User):
@@ -40,19 +40,19 @@ async def get_user(user_id: str):
             
 
 @router.post("/{user_id}/follow/")
-async def follow_user(user_id: str, token_payload: dict = Depends(verify_jwt)):
+async def follow_user(user_id: str):
     # Here you would implement the logic to follow a user
     # For now, we'll just return a dummy response
     return {"status": "success", "user_id": user_id, "action": "followed"}
 
 @router.get("/{user_id}/gifs")
-async def get_user_gifs(user_id: str, token_payload: dict = Depends(verify_jwt)):
+async def get_user_gifs(user_id: str):
     # Here you would implement the logic to retrieve all GIFs for a user
     # For now, we'll just return a dummy response
     return {"status": "success", "user_id": user_id, "gifs": []}
 
 @router.get("/{user_id}")
-async def get_user(user_id: str, token_payload: dict = Depends(verify_jwt)):
+async def get_user(user_id: str):
     # Here you would implement the logic to retrieve user details
     # For now, we'll just return a dummy response
     return {"status": "success", "user_id": user_id, "name": "John Doe"}
