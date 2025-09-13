@@ -1,0 +1,10 @@
+{
+  "Records": [
+    {
+      "s3": {
+        "bucket": { "name": "fragment-webm" },
+        "object": { "key": "uploads/example.webm" }
+      }
+    }
+  ]
+}
