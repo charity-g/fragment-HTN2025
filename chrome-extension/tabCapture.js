@@ -78,13 +78,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: "video/webm" });
         chunks = [];
-        uploadToBackend(blob);
         // If you still want local download for backup:
         // const url = URL.createObjectURL(blob);
         // const a = document.createElement("a");
         // a.href = url;
         // a.download = "video-element-recording.webm"; 
         // a.click();
+        // ^^
+
+        uploadToBackend(blob);
       };
       recorder.start(2000);
     });
