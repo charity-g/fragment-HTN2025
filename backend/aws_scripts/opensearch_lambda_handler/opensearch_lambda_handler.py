@@ -5,7 +5,7 @@ from requests_aws4auth import AWS4Auth
 
 region = 'us-east-1'
 service = 'es'
-host = 'https://fragment-opensearch.us-east-1.es.amazonaws.com'
+host = 'https://search-fragment-opensearch-or6bk37m3wqja5rog4rtn3sog4.us-east-1.es.amazonaws.com'
 
 credentials = boto3.Session().get_credentials()
 awsauth = AWS4Auth(
@@ -20,14 +20,15 @@ def lambda_handler(event, context):
     for record in event['Records']:
         if record['eventName'] in ['INSERT', 'MODIFY']:
             new_image = record['dynamodb']['NewImage']
-            doc_id = new_image['id']['S']
+            print(f"Processing record: {new_image}")
+            doc_id = new_image['video_id']['S']
 
             # Convert DynamoDB format to regular dict
             document = {
-                "id": new_image['id']['S'],
+                "video_id": new_image['video_id']['S'],
                 "title": new_image.get('title', {}).get('S', ''),
                 "content": new_image.get('content', {}).get('S', ''),
-                "timestamp": new_image.get('timestamp', {}).get('S', '')
+                "timestamp": new_image.get('created_at', {}).get('S', '')
             }
 
             # Index to OpenSearch

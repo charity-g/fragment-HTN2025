@@ -4,7 +4,7 @@ import boto3
 
 region = 'us-east-1'  # your region
 service = 'es'
-INDEX_NAME = 'TODO AFTER INDEX ADDED'  
+INDEX_NAME = '.kibana_1'  
 
 # Get IAM credentials from environment / instance / role
 session = boto3.Session()
@@ -28,9 +28,6 @@ client = OpenSearch(
 )
 
 # Search
-result = client.search(index='TODO-HERE', body={"query": {"match_all": {}}})
-print(result)
-
 def search_opensearch(query_string: str):
     body = {
         "query": {
@@ -40,11 +37,13 @@ def search_opensearch(query_string: str):
             }
         }
     }
-    result = client.search(index=INDEX_NAME, body=body)
-    return result
+    results = client.search(index=INDEX_NAME, body=body)
+    return results
 
 # Example usage:
 if __name__ == "__main__":
-    query = "test"
+    query = "apple pie"
     result = search_opensearch(query)
     print(result)
+    print(result['hits']['hits']  # <-- get hits here
+    )   

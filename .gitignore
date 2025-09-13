@@ -5,10 +5,10 @@ backend/**/__pycache__/
 backend/.venv
 backend/uploads/*
 
-aws_s3/.venv
-aws_s3/__pycache__/
-aws_s3/*/package
-aws_s3/lambda-*.zip
+backend/aws_scripts/.venv
+backend/aws_scripts/__pycache__/
+backend/aws_scripts/**/package
+backend/aws_scripts/lambda-*.zip
 
 # macOS
 .DS_Store
