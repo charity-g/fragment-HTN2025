@@ -151,8 +151,6 @@ def lambda_handler(event, context):
         dynamo_item = {
             'video_id': video_id,
             'tags': [],
-            'description': response['Metadata'].get('description', None),
-            'source_link': response['Metadata'].get('source_link', None),
             'user_id': response['Metadata'].get('user_id', 'system'),
             'is_public': False,  # default to private
             'gif_link': gif_link,
@@ -166,7 +164,11 @@ def lambda_handler(event, context):
             dynamo_item['tags'] = initial_tags.split(',') if initial_tags else []
         except Exception:
             dynamo_item['tags'] = []
-        
+
+        for key in ['title', 'description', 'source_link']:
+            if (key in response['Metadata']):
+                dynamo_item[key] = response['Metadata'].get(key, None)
+
         table.put_item(Item=dynamo_item)
         print(f"Saved to DynamoDB: {video_id}")
         
