@@ -8,7 +8,6 @@ aws iam list-policies --query 'Policies[?PolicyName==`LambdaS3AccessPolicy`]'
 aws iam list-roles --query 'Roles[?RoleName==`LambdaS3Role`]'
 
 # update lambda
-zip -r lambda_function.zip main_setup_lambda_handler.py    
 aws lambda update-function-code --function-name ConvertWebMToVideoFormats --zip-file fileb://lambda_function.zip
 
 # check if lambda function exists
