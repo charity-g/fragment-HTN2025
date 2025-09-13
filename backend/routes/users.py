@@ -54,7 +54,7 @@ def get_user_gifs_by_tag(user_id: str, tags: list[str]):
             **{f":tag{i}": tag for i, tag in enumerate(tags)},
             ":uid": user_id
         }
-    )r
+    )
     gifs = response.get("Items", [])
     return {"status": "success", "user_id": user_id, "gifs": gifs}
 
