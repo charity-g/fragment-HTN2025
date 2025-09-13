@@ -16,7 +16,7 @@ awsauth = AWS4Auth(
     session_token=credentials.token
 )
 
-host = 'search-your-domain.us-east-1.es.amazonaws.com'  # OpenSearch endpoint
+host = 'search-fragment-opensearch-or6bk37m3wqja5rog4rtn3sog4.us-east-1.es.amazonaws.com'  # OpenSearch endpoint
 
 client = OpenSearch(
     hosts=[{'host': host, 'port': 443}],
@@ -24,12 +24,6 @@ client = OpenSearch(
     use_ssl=True,
     verify_certs=True,
     connection_class=RequestsHttpConnection
-)
-
-# Index a document
-response = client.index(
-    index='my-index',
-    body={"title": "Test", "views": 1}
 )
 
 # Search
