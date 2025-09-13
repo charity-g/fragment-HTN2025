@@ -26,6 +26,12 @@ client = OpenSearch(
     connection_class=RequestsHttpConnection
 )
 
+# Index a document
+response = client.index(
+    index='my-index',
+    body={"title": "Test", "views": 1}
+)
+
 # Search
 result = client.search(index='my-index', body={"query": {"match_all": {}}})
 print(result)

@@ -35,14 +35,3 @@ aws s3api get-bucket-notification-configuration --bucket fragment-webm
 # check invocations of lambda function ConvertWebMToVideoFormats
 aws cloudwatch get-metric-statistics --namespace AWS/Lambda --metric-name Invocations --dimensions Name=FunctionName,Value=ConvertWebMToVideoFormats --start-time 2023-01-01T00:00:00Z --end-time 2023-01-02T00:00:00Z --period 86400 --statistics Sum
 
-
-# create opensearch domain
-# Make sure access-policy.json exists in the current directory before running this command!
-# Example: touch access-policy.json and add your policy content.
-aws opensearch create-domain --domain-name fragment-opensearch --engine-version OpenSearch_2.11 --cluster-config InstanceType=t3.small.search,InstanceCount=1 --ebs-options EBSEnabled=true,VolumeType=gp2,VolumeSize=10  --region us-east-1
-
-# get opensearch domain
-aws opensearch describe-domain --domain-name fragment-opensearch --query "DomainStatus.Endpoint" --output text
-
-# add policy 
-aws opensearch update-domain-config  --domain-name fragment-opensearch --access-policies file://access-policy.json  --region us-east-1
