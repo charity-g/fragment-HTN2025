@@ -1,10 +1,12 @@
+### install dependencies
+```
+cd backend
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app:app --reload
+```
 
-## Quickstart
-1. **Install dependencies:**
-	 ```sh
-	 pip install -r requirements.txt
-	 ```
-2. **Run FastAPI server:**
-	 ```sh
-	 uvicorn app.main:app --reload
-	 ```
+### update dependencies
+```
+pip freeze > requirements.txt
+```
