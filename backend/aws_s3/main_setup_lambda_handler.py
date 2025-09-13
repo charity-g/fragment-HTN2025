@@ -1,24 +1,38 @@
 import json
 import urllib.parse
 import boto3
+from datetime import datetime
 
 s3 = boto3.client('s3')
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('fragment-test')
 
 def lambda_handler(event, context):
     print("=== LAMBDA TRIGGERED ===")
     print("Received event: " + json.dumps(event, indent=2))
 
     # Get the object from the event and show its content type
-    try:
+    try:    
         bucket = event['Records'][0]['s3']['bucket']['name']
         key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
         response = s3.get_object(Bucket=bucket, Key=key)
         print("CONTENT TYPE: " + response['ContentType'])
+        
+        # Write to DynamoDB - SIMPLE TEST
+        video_id = key.split('/')[-1]
+        
+        dynamo_item = {
+            'video_id': video_id,
+            'message': 'Hello from Lambda!'
+        }
+        
+        table.put_item(Item=dynamo_item)
+        print(f"Saved to DynamoDB: {video_id}")
+        
         return {
             "status": "success",
-            "content_type": response['ContentType'],
-            "bucket": bucket,
-            "key": key
+            "video_id": video_id,
+            "message": "Saved to DynamoDB!"
         }
     except Exception as e:
         print(e)
