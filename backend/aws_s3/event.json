@@ -3,7 +3,7 @@
     {
       "s3": {
         "bucket": { "name": "fragment-webm" },
-        "object": { "key": "uploads/example.webm" }
+        "object": { "key": "uploads/test-lambda-s3-wiring.webm" }
       }
     }
   ]

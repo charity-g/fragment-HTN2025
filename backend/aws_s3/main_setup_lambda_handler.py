@@ -5,7 +5,8 @@ import boto3
 s3 = boto3.client('s3')
 
 def lambda_handler(event, context):
-    #print("Received event: " + json.dumps(event, indent=2))
+    print("=== LAMBDA TRIGGERED ===")
+    print("Received event: " + json.dumps(event, indent=2))
 
     # Get the object from the event and show its content type
     try:

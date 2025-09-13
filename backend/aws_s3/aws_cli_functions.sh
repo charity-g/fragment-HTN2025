@@ -7,12 +7,17 @@ aws iam list-policies --query 'Policies[?PolicyName==`LambdaS3AccessPolicy`]'
 # check if role exists
 aws iam list-roles --query 'Roles[?RoleName==`LambdaS3Role`]'
 
+# update lambda
+aws lambda update-function-code --function-name ConvertWebMToVideoFormats --zip-file fileb://lambda_function.zip
+
 # check if lambda function exists
 aws lambda list-functions --query 'Functions[?FunctionName==`ConvertWebMToVideoFormats`]'
 aws lambda get-function --function-name ConvertWebMToVideoFormats
 
 # invoke lambda function
 aws lambda invoke --function-name ConvertWebMToVideoFormats response.json
+# test invocation with event.json
+aws lambda invoke --function-name ConvertWebMToVideoFormats --payload file://event.json response.json --cli-binary-format raw-in-base64-out
 
 # check number of invocations
 aws cloudwatch get-metric-statistics --namespace AWS/Lambda --metric-name Invocations --dimensions Name=FunctionName,Value=ConvertWebMToVideoFormats --start-time 2025-01-01T00:00:00Z --end-time 2026-01-02T00:00:00Z --period 86400 --statistics Sum          
