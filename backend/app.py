@@ -1,5 +1,6 @@
 # app.py
 from fastapi import FastAPI, File, UploadFile, Form
+from typing import List, Optional
 import uvicorn
 import os
 from fastapi.responses import JSONResponse
@@ -9,6 +10,10 @@ import uuid
 import sys
 
 from s3_utils import upload_file_to_s3
+
+
+from routes import videos, users
+
 
 app = FastAPI()
 app.add_middleware(
@@ -25,38 +30,67 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @app.post("/upload")
 async def upload_video(
     file: UploadFile = File(...),
-    title: str = Form(...),
-    description: str = Form(""),
-    tags: str = Form("")
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None),
+    source_link: Optional[str] = Form(None),
+    user_id: Optional[str] = Form(None)
 ):
-    task_id = str(uuid.uuid4())
-
-    # Save file locally
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    video_id = str(uuid.uuid4())
+    
+    file_path = os.path.join(UPLOAD_DIR, video_id + ".webm")
     with open(file_path, "wb") as f:
         f.write(await file.read())
-
-    # Upload to S3
-    # s3_bucket = "fragment-webm"
-    # s3_key = f"uploads/{file.filename}"
-    # upload_file_to_s3(file_path, s3_bucket, s3_key)
-
-    print(title)
-    print(description)
-    print(tags)
     
+    # Prepare S3 metadata
+    metadata = {}
+    if title:
+        metadata['title'] = title
+    if description:
+        metadata['description'] = description
+    if tags:
+        # tags can be a comma-separated string or array, store as string
+        metadata['initial_tags'] = tags if isinstance(tags, str) else ','.join(tags)
+    if source_link:
+        metadata['source_link'] = source_link
+    if user_id:
+        metadata['user_id'] = user_id
+
+    s3_bucket = "fragment-webm"
+    s3_key = f"uploads/{video_id}.webm"
+    upload_file_to_s3(file_path, s3_bucket, s3_key, metadata=metadata if metadata else None)
+
+    os.remove(file_path)
+
     return {
         "status": "success",
-        "task_id": task_id,
-        # "s3_key": s3_key,
-        "title": title,
+        "video_id": video_id,
+        "s3_key": s3_key,
         "description": description,
-        "tags": tags.split(",") if tags else []
+        "tags": tags,
+        "user_id": user_id
     }
 
+
+app.include_router(videos.router, prefix="/videos", tags=["videos"])
+app.include_router(users.router, prefix="/users", tags=["users"])
 
 if __name__ == "__main__":
     if len(sys.argv) >= 1 and sys.argv[0] == "dev":
         uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
     else:
         uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
