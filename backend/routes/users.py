@@ -109,28 +109,29 @@ async def get_user_gifs(user_id: str, tags: list[str] = Query(None)):
         FilterExpression="user_id = :uid",
         ExpressionAttributeValues={":uid": user_id}
     )
-    video_ids =  response.get("Items", [])
-    gif_ids = [item['video_id'] + ".gif_gif.gif" for item in video_ids if 'video_id' in item]
-    print(video_ids, gif_ids)
-    
+
     s3 = boto3.client('s3')
     bucket = "fragment-gifs"
     gif_urls = []
-    for gif_id in gif_ids:
-        key = f"{gif_id}"
+
+    video_items =  response.get("Items", [])
+    filtered_video_items = []
+    for item in video_items:
+        gif_name = item['video_id'] + ".gif_gif.gif"
         try:
-            s3.head_object(Bucket=bucket, Key=key)
+            s3.head_object(Bucket=bucket, Key=gif_name)
             presigned_url = s3.generate_presigned_url(
                 'get_object',
-                Params={'Bucket': bucket, 'Key': key},
+                Params={'Bucket': bucket, 'Key': gif_name},
                 ExpiresIn=10000
             )
-            gif_urls.append(presigned_url)
+            item['gif_url'] = presigned_url
+            filtered_video_items.append(item)
         except Exception as e:
-            print(f"Error generating presigned URL for {key}: {e}")
+            print(f"Error generating presigned URL for {gif_name}: {e}")
             continue
 
-    return {"status": "success", "user_id": user_id, "gifs": gif_urls}
+    return {"status": "success", "user_id": user_id, "gifs": filtered_video_items}
 
 def get_user_gifs_by_tag(user_id: str, tags: list[str]):
     dynamodb = boto3.resource('dynamodb')
