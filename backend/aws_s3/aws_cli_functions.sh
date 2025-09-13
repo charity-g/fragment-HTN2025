@@ -7,3 +7,9 @@ aws iam list-policies --query 'Policies[?PolicyName==`LambdaS3AccessPolicy`]'
 
 # check if role exists
 aws iam list-roles --query 'Roles[?RoleName==`LambdaS3Role`]'
+
+# check if lambda function exists
+aws lambda list-functions --query 'Functions[?FunctionName==`ConvertWebMToVideoFormats`]'
+
+# invoke lambda function
+aws lambda invoke --function-name ConvertWebMToVideoFormats response.json
