@@ -6,7 +6,7 @@ import UserProfileSection from "../components/UserProfileSection";
 
 export default function FollowingPage() {
     return (
-      <div className="bg-black min-h-screen text-white">
+      <div className="h-full bg-[#0D0D0D] text-white">
         <HeaderSection  />
         <UserProfileSection is_self={true} />
         <FragmentNavbar currrouter="/following" />
