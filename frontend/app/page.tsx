@@ -6,6 +6,7 @@ import { useSearch } from "./contexts/SearchContext";
 import SearchResultsGrid from "@/app/Components/SearchResultsGrid";
 import styles from "@/app/landing/Landing.module.css";
 import logo from "@/app/src/images/logo.svg";
+import Link from "next/dist/client/link";
 
 // Regular Landing Content
 function LandingContent() {
@@ -24,31 +25,31 @@ function LandingContent() {
             priority
             style={{ filter: "brightness(0) invert(1)" }}
           />
-          <a className="navTitle">FRAGMENTS</a>
+          <Link className="navTitle" href="/fragments">FRAGMENTS</Link>
         </div>
         <nav className={styles.nav}>
           {isLoading ? (
             <div className={styles.btn}>Loading...</div>
           ) : user ? (
             <>
-              <a href="/fragments" className={styles.btn}>
+              <Link href="/fragments" className={styles.btn}>
                 <span>Hello, {user.name}!</span>
-              </a>
-              <a className={styles.btn} href="/auth/logout">
+              </Link>
+              <Link className={styles.btn} href="/auth/logout">
                 Logout
-              </a>
+              </Link>
             </>
           ) : (
             <>
-              <a className={styles.btn} href="/auth/login?returnTo=/fragments">
+              <Link className={styles.btn} href="/auth/login?returnTo=/fragments">
                 Log in
-              </a>
-              <a
+              </Link>
+              <Link 
                 className={`${styles.btn} ${styles.btnPrimary}`}
                 href="/auth/login?returnTo=/fragments"
               >
                 Sign up
-              </a>
+              </Link>
             </>
           )}
         </nav>
@@ -70,9 +71,9 @@ function LandingContent() {
         <p className={styles.caption}>
           Clip the videos that spark your vision and never lose them.
         </p>
-        <a className={styles.cta} href="/extension">
+        <Link className={styles.cta} href="/extension">
           Get browser extension
-        </a>
+        </Link>
       </div>
     </main>
   );

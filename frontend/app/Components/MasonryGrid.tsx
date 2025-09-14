@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import GifComponent from './GifComponent';
 import type { gifObject } from "@/types/gifObject";
+import Link from 'next/link';
 
 // Accept gifs prop and render images
 export default function MasonryGrid({ gifs }: { gifs: gifObject[] }) {
@@ -23,9 +24,9 @@ export default function MasonryGrid({ gifs }: { gifs: gifObject[] }) {
         {Array.from({ length: columns }).map((_, col) => (
           <div key={col} className="flex flex-col gap-4 flex-1">
             {gifs.filter((_, i) => i % columns === col).map((gif, idx) => (
-              <a href={`/fragment/${gif.video_id}`} key={gif.video_id}>
+              <Link href={`/fragment/${gif.video_id}`} key={gif.video_id}>
                 <GifComponent key={idx} gif={gif} />
-              </a>
+              </Link>
             ))}
           </div>
         ))}

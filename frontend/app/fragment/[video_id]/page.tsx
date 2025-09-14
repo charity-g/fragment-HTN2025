@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default async function FragmentPage({ params }: { params: { video_id: string } }) {
   const { video_id } = params;
 
@@ -25,7 +27,7 @@ export default async function FragmentPage({ params }: { params: { video_id: str
         </div>
 
         {/* Right: Metadata Panel */}
-        <aside className="w-[340px] bg-[#1e1e1e] rounded-2xl p-6 flex flex-col gap-6 shadow-lg">
+        <Linkside className="w-[340px] bg-[#1e1e1e] rounded-2xl p-6 flex flex-col gap-6 shadow-lg">
           {/* Top Bar */}
           <div className="flex justify-between items-center text-sm text-gray-400">
             <span className="font-medium text-white">youtube</span>
@@ -78,9 +80,9 @@ export default async function FragmentPage({ params }: { params: { video_id: str
             <p className="mt-2 text-gray-400">
               This effect is called a flash cut. It’s done by trimming 2–3 frames out of
               the clip, creating a jarring transition. Here’s how you can replicate it in{" "}
-              <a href="#" className="underline hover:text-white">
+              <Link href="#" className="underline hover:text-white">
                 Premiere
-              </a>
+              </Link>
               .
             </p>
           </details>
@@ -94,7 +96,7 @@ export default async function FragmentPage({ params }: { params: { video_id: str
               Edit Fragment
             </button>
           </div>
-        </aside>
+        </Linkside>
       </div>
     </main>
   );

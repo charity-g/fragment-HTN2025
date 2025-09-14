@@ -1,9 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import Link from "next/link";
 
-
-export default function FragmentNavbar({ is_self, currrouter }: { is_self: boolean, currrouter: string }) {
+export default function FragmentNavbar({ is_self = true, currrouter }: { is_self: boolean, currrouter: string }) {
   const router = useRouter();
   const focused = "text-sm text-white border-b-2 border-white pb-2 bg-transparent";
   const unfocused = "text-sm text-gray-400 hover:text-white pb-2 bg-transparent";
@@ -48,20 +48,20 @@ export default function FragmentNavbar({ is_self, currrouter }: { is_self: boole
         ) : user ? (
           <div className="flex items-center gap-3">
             <span className="text-gray-300 text-sm">{user.name}</span>
-            <a
+            <Link
               href="/auth/logout"
               className="border border-gray-600 text-gray-300 hover:text-white bg-transparent px-4 py-2 rounded text-sm"
             >
               Logout
-            </a>
+            </Link>
           </div>
         ) : (
-          <a
+          <Link
             href="/auth/login"
             className="bg-white text-black hover:bg-gray-200 px-4 py-2 rounded text-sm"
           >
             Login
-          </a>
+          </Link>
         )}
       </div>
     </div>
