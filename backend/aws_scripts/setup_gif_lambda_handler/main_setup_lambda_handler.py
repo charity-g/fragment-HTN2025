@@ -106,6 +106,7 @@ def lambda_handler(event, context):
         except Exception:
             pass
 
+        print("Metadata", response['Metadata'])
         # Write to DynamoDB - Full video record
         dynamo_item = {
             'video_id': video_id,
@@ -115,15 +116,15 @@ def lambda_handler(event, context):
             'privacy': response['Metadata'].get('privacy', 'private'),
             'gif_link': gif_link,
             'webm_link': f's3://{bucket}/{key}',
-            'sourceURL': response['Metadata'].get('sourceURL', ''),
+            'sourceURL': response['Metadata'].get('sourceurl', ''),
             'created_at': timestamp,
-            'updated_at': timestamp
+            'updated_at': timestamp,
+            'editingInstructions': response['Metadata'].get('editinginstructions', ''),
+            'videoSummary': response['Metadata'].get('videosummary', '')
         }
         try:
             initial_tags = response['Metadata'].get('initial_tags', '')
             dynamo_item['tags'] = initial_tags.split(',') if initial_tags else []
-            dynamo_item['editingInstructions'] = response['Metadata'].get('editingInstructions', '')
-            dynamo_item['videoSummary'] = response['Metadata'].get('videoSummary', '')
         except Exception:
             dynamo_item['tags'] = []
 

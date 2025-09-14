@@ -277,13 +277,12 @@ async def search_non_matching_user(user_id: str):
                 "bool": {
                     "must_not": [
                         {"term": {"user_id": user_id}},
-                        {"term": {"gif_link": ""}},
-                        {"term": {"gif_link": None}},
-                        {"term": {"tags": ""}}
+                        # {"term": {"gif_link": ""}},
+                        # {"term": {"gif_link": None}},
                     ],
                     "filter": [
-                        {"exists": {"field": "gif_link"}},
-                        {"exists": {"field": "tags"}},
+                        # {"exists": {"field": "gif_link"}},
+                        # {"exists": {"field": "tags"}},
                     ]
                 }
             },
