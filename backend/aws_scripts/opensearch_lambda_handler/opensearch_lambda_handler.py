@@ -18,7 +18,17 @@ awsauth = AWS4Auth(
     session_token=credentials.token
 )
 
+def ensure_index_exists():
+    # Check if index exists, create if not
+    url = f"{host}/{index_name}"
+    response = requests.head(url, auth=awsauth)
+    if response.status_code == 404:
+        # Create index with default settings
+        create_resp = requests.put(url, auth=awsauth, headers={"Content-Type": "application/json"}, json={})
+        print(f"Created index {index_name}: {create_resp.status_code} {create_resp.text}")
+
 def index_dynamo_item_to_opensearch(item):
+    ensure_index_exists()
     doc_id = item['video_id']
     document = {
         "user_id": item.get('user_id', ''),
