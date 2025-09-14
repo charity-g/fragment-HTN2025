@@ -114,7 +114,7 @@ function injectButtons() {
       controlPanel.style.gap = "15px";
 
       const stopBtn = document.createElement("button");
-      stopBtn.textContent = "⏹ Stop";
+      stopBtn.textContent = "⏹ End Recording";
       stopBtn.style.background = "#e53935";
       stopBtn.style.color = "white";
       stopBtn.style.border = "none";
@@ -126,7 +126,7 @@ function injectButtons() {
       timer.textContent = "00:00";
       timer.style.fontSize = "14px";
       timer.style.fontWeight = "bold";
-      timer.style.color = "#76ff03";
+      timer.style.color = "#fff";
 
       const deleteBtn = document.createElement("button");
       deleteBtn.innerHTML = `

@@ -23,7 +23,9 @@ export default function MasonryGrid({ gifs }: { gifs: gifObject[] }) {
         {Array.from({ length: columns }).map((_, col) => (
           <div key={col} className="flex flex-col gap-4 flex-1">
             {gifs.filter((_, i) => i % columns === col).map((gif, idx) => (
-              <GifComponent key={idx} gif={gif} />
+              <a href={`/fragment/${gif.video_id}`} key={gif.video_id}>
+                <GifComponent key={idx} gif={gif} />
+              </a>
             ))}
           </div>
         ))}
