@@ -155,6 +155,8 @@ def lambda_handler(event, context):
         try:
             initial_tags = response['Metadata'].get('initial_tags', '')
             dynamo_item['tags'] = initial_tags.split(',') if initial_tags else []
+            dynamo_item['editingInstructions'] = response['Metadata'].get('editingInstructions', '')
+            dynamo_item['videoSummary'] = response['Metadata'].get('videoSummary', '')
         except Exception:
             dynamo_item['tags'] = []
 

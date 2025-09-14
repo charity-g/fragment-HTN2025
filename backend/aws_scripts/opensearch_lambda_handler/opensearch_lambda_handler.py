@@ -27,6 +27,8 @@ def index_dynamo_item_to_opensearch(item):
         "description": item.get('description', ''),
         "tags": item.get('tags', []),
         "created_at": item.get('created_at', ''),
+        "editingInstructions": item.get('editingInstructions', ''),
+        "videoSummary": item.get('videoSummary', ''),
         "updated_at": item.get('updated_at', '')
     }
     url = f"{host}/{index_name}/_doc/{doc_id}"
