@@ -91,3 +91,11 @@ body {
 .group-hover\:animate-wave::before {
   animation: wave 1.2s ease-in-out forwards;
 }
+
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
