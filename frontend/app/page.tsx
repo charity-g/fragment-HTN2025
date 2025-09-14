@@ -7,6 +7,7 @@ import logo from "@/app/src/images/logo.svg";
 export default function Landing() {
   return (
     <main className={styles.landingBg} aria-hidden>
+      
 
       {/* Top nav */}
       <header className={styles.header}>
