@@ -1,19 +1,30 @@
-"use client";
 
 import HeaderSection from "../Components/HeaderSection";
 import FragmentNavbar from "../Components/FragmentNavbar";
 import UserProfileSection from "../Components/UserProfileSection";
 import SearchResultsGrid from "../Components/SearchResultsGrid";
 import { useSearch } from "../contexts/SearchContext";
+import CollectionCarousel from "../Components/CollectionScrollCarousel";
 
 // Regular Following Content
-function FollowingContent() {
+async function FollowingContent() {
+    let collections = await fetch(`http://localhost:8000/users/system/collections`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        cache: "no-store"
+    }).then(res => res.json()).then(data => data.collections || []);
+
+
   return (
     <div className="px-6 py-8">
       <h1 className="text-3xl font-light mb-8">Following</h1>
       <div className="text-gray-400">
         <p>Content from people you follow will appear here...</p>
-        {/* Add your following content here */}
+
+        
+        <CollectionCarousel collections={collections} />
       </div>
     </div>
   );
