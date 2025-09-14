@@ -114,7 +114,7 @@ async def upload_video(
         if genAIData['videoSummary']:
             metadata["videoSummary"] = json.dumps(genAIData['videoSummary'])
         if genAIData['tags']:
-            metadata["initial_tags"] = ("," if metadata.get("initial_tags") else "").join(genAIData['tags'])
+            metadata["initial_tags"] = ("," if metadata.get("initial_tags") else "") + ",".join(genAIData['tags'])
 
     s3_bucket = "fragment-webm"
     s3_key = f"uploads/{video_id}.webm"
