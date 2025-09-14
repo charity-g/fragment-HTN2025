@@ -20,7 +20,7 @@ def create_gif_with_mediaconvert(input_s3_uri: str, video_id: str, width: int, h
     
     # Job settings for GIF conversion
     job_settings = {
-        'Role': 'arn:aws:iam::348076083335:role/MediaConvertRole',  # created role
+        'Role': 'arn:aws:iam::348076083335:role/MediaConvertRole',
         'Settings': {
             'Inputs': [{
                 'FileInput': input_s3_uri,
@@ -55,8 +55,6 @@ def create_gif_with_mediaconvert(input_s3_uri: str, video_id: str, width: int, h
             }]
         }
     }
-    
-    # Submit job
     job = mc_client.create_job(**job_settings)
     return job['Job']['Id']
 
@@ -104,50 +102,45 @@ def lambda_handler(event, context):
         
         video_id = key.split('/')[-1].split('.')[0]  # Remove file extension
         timestamp = datetime.utcnow().isoformat() + 'Z'
-        
+        width = int(response['Metadata'].get('width', 720))
+        height = int(response['Metadata'].get('height', 480))
+
         temp_webm = f'/tmp/{video_id}.webm'
-        
+
         s3.download_file(bucket, key, temp_webm)
         print(f"Downloaded WebM: {temp_webm}")
         
         # Convert to GIF using MediaConvert
         input_s3_uri = f's3://{bucket}/{key}'
         gif_link = f'{video_id}_gif.gif'
-        
-        # Get dynamic width and height from metadata if present, else use defaults
-        width = int(response['Metadata'].get('width', 720))
-        height = int(response['Metadata'].get('height', 480)) 
+
 
         try:
             job_id = create_gif_with_mediaconvert(input_s3_uri, video_id, width=width, height=height)
             print(f"MediaConvert job created: {job_id} for video {video_id}")
-            
-            # Wait for job completion (max 5 minutes)
+
             if wait_for_job_completion(job_id, max_wait_seconds=300):
-                print(f"GIF conversion completed successfully!")
+                print("GIF conversion completed successfully!")
             else:
-                print(f"GIF conversion failed or timed out")
-                gif_link = None  # Placeholder
-                
+                print("GIF conversion failed or timed out")
+                gif_link = None
         except Exception as e:
             print(f"MediaConvert job failed: {e}")
-            gif_link = None  # Placeholder
+            gif_link = None
 
-        # Clean up temp files
         try:
             os.remove(temp_webm)
-        except:
+        except Exception:
             pass
-        
+
         # Write to DynamoDB - Full video record
         dynamo_item = {
             'video_id': video_id,
             'tags': [],
             'user_id': response['Metadata'].get('user_id', 'system'),
-            'is_public': False,  # default to private
+            'is_public': False,
             'gif_link': gif_link,
             'webm_link': f's3://{bucket}/{key}',
-            'user_id': 'system',  # Default user!
             'created_at': timestamp,
             'updated_at': timestamp
         }
@@ -160,12 +153,12 @@ def lambda_handler(event, context):
             dynamo_item['tags'] = []
 
         for key in ['title', 'description', 'source_link']:
-            if (key in response['Metadata']):
+            if key in response['Metadata']:
                 dynamo_item[key] = response['Metadata'].get(key, None)
 
         table.put_item(Item=dynamo_item)
         print(f"Saved to DynamoDB: {video_id}")
-        
+
         return {
             "status": "success",
             "video_id": video_id,
@@ -176,7 +169,7 @@ def lambda_handler(event, context):
         print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(
             key if 'key' in locals() else 'unknown',
             bucket if 'bucket' in locals() else 'unknown'
-        ))  
+        ))
         return {
             "status": "error",
             "error": str(e)
