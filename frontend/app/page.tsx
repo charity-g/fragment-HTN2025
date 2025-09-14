@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import styles from "@/app/landing/Landing.module.css"
+import { useAuth } from "@/hooks/useAuth";
+import styles from "@/app/landing/Landing.module.css";
 import logo from "@/app/src/images/logo.svg";
 
 export default function Landing() {
+  const { user, isLoading } = useAuth();
   return (
     <main className={styles.landingBg} aria-hidden>
-      
-
       {/* Top nav */}
       <header className={styles.header}>
         <div className={styles.brand}>
@@ -23,15 +23,39 @@ export default function Landing() {
           <a className="navTitle">FRAGMENTS</a>
         </div>
         <nav className={styles.nav}>
-          <a className={styles.btn} href="/login">Log in</a>
-          <a className={`${styles.btn} ${styles.btnPrimary}`} href="/signup">Sign up</a>
+          {isLoading ? (
+            <div className={styles.btn}>Loading...</div>
+          ) : user ? (
+            <>
+              <span className={styles.btn}>Hello, {user.name}!</span>
+              <a className={styles.btn} href="/auth/logout">
+                Logout
+              </a>
+            </>
+          ) : (
+            <>
+              <a className={styles.btn} href="/auth/login">
+                Log in
+              </a>
+              <a
+                className={`${styles.btn} ${styles.btnPrimary}`}
+                href="/auth/login"
+              >
+                Sign up
+              </a>
+            </>
+          )}
         </nav>
       </header>
 
       {/* Giant headline */}
       <section className={styles.hero}>
         <h1 className={styles.headline}>
-          A THOUSAND<br/>WORDS SET<br/>IN MOTION.
+          A THOUSAND
+          <br />
+          WORDS SET
+          <br />
+          IN MOTION.
         </h1>
       </section>
 
@@ -40,7 +64,9 @@ export default function Landing() {
         <p className={styles.caption}>
           Clip the videos that spark your vision and never lose them.
         </p>
-        <a className={styles.cta} href="/extension">Get browser extension</a>
+        <a className={styles.cta} href="/extension">
+          Get browser extension
+        </a>
       </div>
     </main>
   );
