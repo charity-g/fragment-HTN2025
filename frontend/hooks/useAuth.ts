@@ -1,17 +1,15 @@
 "use client";
 
 import { useUser } from "@auth0/nextjs-auth0";
-import Link from "next/link";
 import { useEffect } from "react";
 
-export default function Navbar() {
+export function useAuth() {
   const { user, error, isLoading } = useUser();
 
   useEffect(() => {
     if (user) {
       const storeUser = async () => {
         try {
-          // story in dynamo via backend
           console.log("Attempting to store user:", {
             user_id: user.sub,
             email: user.email,
@@ -56,48 +54,9 @@ export default function Navbar() {
     }
   }, [user]);
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <nav className="bg-gray-800 text-white p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="text-xl font-bold">
-            <Link href="/">Fragment</Link>
-          </div>
-          <div>Loading...</div>
-        </div>
-      </nav>
-    );
-  }
-
-  return (
-    <nav className="bg-gray-800 text-white p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="text-xl font-bold">
-          <Link href="/">Fragment</Link>
-        </div>
-
-        <div className="flex space-x-4">
-          {user ? (
-            <>
-              <span>Hello, {user.name}!</span>
-              <Link
-                href="/auth/logout"
-                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
-              >
-                Logout
-              </Link>
-            </>
-          ) : (
-            <Link
-              href="/auth/login"
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
-            >
-              Login
-            </Link>
-          )}
-        </div>
-      </div>
-    </nav>
-  );
+  return {
+    user,
+    error,
+    isLoading,
+  };
 }
