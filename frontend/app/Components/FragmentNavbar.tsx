@@ -2,10 +2,13 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUserPlus, faUserMinus } from "@fortawesome/free-solid-svg-icons";
 
-export default function FragmentNavbar({ foreignUserId = null, currrouter }: { foreignUserId?: string | null, currrouter: string }) {
+export default async function FragmentNavbar({ foreignUserId = null, currrouter }: { foreignUserId?: string | null, currrouter: string }) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const is_following = foreignUserId && await fetch(`http://localhost:8000/users/${user?.sub}/is_following`).then(res => res.json()).then(data => data.following.includes(foreignUserId)).catch(() => false);
   const focused = "text-sm text-white border-b-2 border-white pb-2 bg-transparent";
   const unfocused = "text-sm text-gray-400 hover:text-white pb-2 bg-transparent";
 
@@ -33,7 +36,54 @@ export default function FragmentNavbar({ foreignUserId = null, currrouter }: { f
         </button>}
       </nav>
       <div className="flex gap-3">
-        {currrouter === "/fragments" && !foreignUserId && (
+        {foreignUserId ? (
+          <>
+            {is_following ? (
+              <button
+                className="border border-gray-600 text-red-400 hover:text-white bg-transparent px-4 py-2 rounded text-sm flex items-center gap-2"
+                onClick={async () => {
+                  try {
+                    await fetch(`http://localhost:8000/users/${user?.sub}/follow/${foreignUserId}`, {
+                      method: "POST",
+                      body: JSON.stringify({ follow: false }),
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    // Optionally show feedback to user here
+                  } catch (e) {
+                    console.error("Failed to unfollow user:", e);
+                  }
+                }}
+              >
+                <FontAwesomeIcon icon={faUserMinus} />
+                Unfollow
+              </button>
+            ) : (
+              <button
+                className="border border-gray-600 text-green-400 hover:text-white bg-transparent px-4 py-2 rounded text-sm flex items-center gap-2"
+                onClick={async () => {
+                  try {
+                    await fetch(`http://localhost:8000/users/${user?.sub}/follow/${foreignUserId}`, {
+                      method: "POST",
+                      body: JSON.stringify({ follow: true }),
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    // Optionally show feedback to user here
+                  } catch (e) {
+                    console.error("Failed to follow user:", e);
+                  }
+                }}
+              >
+                <FontAwesomeIcon icon={faUserPlus} />
+                Follow
+              </button>
+            )}
+          </>
+        ) :
+        (currrouter === "/fragments" ) && (
           <>
             <button className="border border-gray-600 text-gray-300 hover:text-white bg-transparent px-4 py-2 rounded text-sm">
               Tag
@@ -44,7 +94,7 @@ export default function FragmentNavbar({ foreignUserId = null, currrouter }: { f
           </>
         )}
 
-        {(!foreignUserId && isLoading) ? (
+        {!foreignUserId  && (isLoading ? (
           <div className="text-gray-400 text-sm">Loading...</div>
         ) : user ? (
           <div className="flex items-center gap-3">
@@ -63,7 +113,7 @@ export default function FragmentNavbar({ foreignUserId = null, currrouter }: { f
           >
             Login
           </Link>
-        )}
+        ))}
       </div>
     </div>
   );

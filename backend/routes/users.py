@@ -89,11 +89,64 @@ async def get_user(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving user: {str(e)}")
 
-@router.post("/{user_id}/follow/")
-async def follow_user(user_id: str):
-    # Here you would implement the logic to follow a user
-    # For now, we'll just return a dummy response
-    return {"status": "success", "user_id": user_id, "action": "followed"}
+
+@router.get("/{user_id}/is_following")
+async def get_user_following(user_id: str):
+    try:
+        response = users_table.get_item(Key={'user_id': user_id})
+
+        if 'Item' not in response:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        following = response['Item'].get('following', [])
+        return {"following": following}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving user following: {str(e)}")
+
+@router.post("/{follower_id}/follow/{followed_id}")
+async def follow_user(follower_id: str, followed_id: str):
+    # go to dynamo db "users", get item where user_id is follower_id
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('users')
+    response = table.get_item(Key={'user_id': follower_id})
+
+    if not body.get('follow', True):
+        # unfollow logic
+        if 'Item' not in response:
+            raise HTTPException(status_code=404, detail="Follower not found")
+
+        follower = response['Item']
+        following = follower.get('following', [])
+
+        # remove followed_id from following if present
+        if followed_id in following:
+            following.remove(followed_id)
+            table.update_item(
+                Key={'user_id': follower_id},
+                UpdateExpression='SET following = :following',
+                ExpressionAttributeValues={':following': following}
+            )
+
+        return {"status": "success", "follower_id": follower_id, "followed_id": followed_id, "action": "unfollowed"}
+    else:
+        # follow logic
+        if 'Item' not in response:
+            raise HTTPException(status_code=404, detail="Follower not found")
+
+        follower = response['Item']
+        following = follower.get('following', [])
+
+        #  add following: [followed_id] if not already present
+        if followed_id not in following:
+            following.append(followed_id)
+            table.update_item(
+                Key={'user_id': follower_id},
+                UpdateExpression='SET following = :following',
+                ExpressionAttributeValues={':following': following}
+            )
+
+        return {"status": "success", "follower_id": follower_id, "followed_id": followed_id, "action": "followed"}
 
 @router.get("/{user_id}/gifs")
 async def get_user_gifs(user_id: str, tags: list[str] = Query(None)):
