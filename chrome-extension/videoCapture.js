@@ -6,6 +6,9 @@ async function uploadToBackend(blob, metadata) {
     formData.append("tags", metadata.tags || "");
     formData.append("notes", metadata.notes || "");
     formData.append("sourceURL", metadata.sourceURL || "");
+    formData.append("collection", metadata.collection || "");
+    formData.append("privacy", metadata.privacy || "");
+    formData.append("user_id", metadata.user_id || "");
   }
 
   try {
@@ -18,10 +21,10 @@ async function uploadToBackend(blob, metadata) {
 
     const data = await resp.json();
     console.log("Upload response:", data);
-    alert("Uploaded to backend: " + JSON.stringify(data));
+    // alert("Uploaded to backend: " + JSON.stringify(data));
   } catch (err) {
     console.error("Error uploading video:", err);
-    alert("Upload failed: " + err.message);
+    // alert("Upload failed: " + err.message);
   }
 }
 
@@ -31,7 +34,8 @@ function injectButtons() {
     video.dataset.hasRecorderBtn = true;
 
     const hoverBtn = document.createElement("button");
-    hoverBtn.textContent = "🎥";
+    const iconPath = chrome.runtime.getURL("fragmentsLogo.svg");
+    hoverBtn.innerHTML = `<img src="${iconPath}" alt="Record" style="width:16px;height:auto;filter:invert(100%);top: 2px;position: relative;left: 1px;"/>`;
     hoverBtn.style.position = "absolute";
     hoverBtn.style.left = "8px";
     hoverBtn.style.top = "8px";
@@ -39,9 +43,10 @@ function injectButtons() {
     hoverBtn.style.background = "black";
     hoverBtn.style.color = "white";
     hoverBtn.style.border = "none";
-    hoverBtn.style.padding = "4px 6px";
+    hoverBtn.style.padding = "8px 10px";
     hoverBtn.style.cursor = "pointer";
     hoverBtn.style.borderRadius = "50%";
+    hoverBtn.style.opacity = "0.8";
 
     let recorder = null;
     let chunks = [];
@@ -175,58 +180,143 @@ function injectButtons() {
 
         if (cancelled) {
           cancelled = false;
+          overlays.forEach((o) => o.remove());
           return;
         }
 
-        cleanupUI();
+        // Remove control panel, but keep overlay until form closes
+        controlPanel.remove();
 
-        // Metadata popup
+        // --- Dark Metadata Popup ---
         const form = document.createElement("div");
         form.style.position = "fixed";
-        form.style.right = "20px";
-        form.style.top = "20px";
-        form.style.zIndex = "10001";
-        form.style.background = "white";
-        form.style.color = "black";
-        form.style.padding = "16px";
-        form.style.border = "1px solid #ccc";
-        form.style.borderRadius = "12px";
-        form.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
-        form.style.width = "280px";
+        form.style.zIndex = "10002"; // above overlay
+        form.style.background = "#1e1e1e";
+        form.style.color = "white";
+        form.style.padding = "20px";
+        form.style.borderRadius = "16px";
+        form.style.boxShadow = "0 4px 16px rgba(0,0,0,0.6)";
+        form.style.width = "320px";
         form.style.fontFamily = "sans-serif";
 
+        // Animation styles
+        form.style.transform = "scale(0.6)";
+        form.style.opacity = "0";
+        form.style.transition = "transform 0.25s ease-out, opacity 0.25s ease-out";
+        form.style.right = "0px";
+        form.style.top = "0px";
+
+        // Delay applying final state so transition runs
+        requestAnimationFrame(() => {
+          form.style.transform = "scale(1)";
+          form.style.opacity = "1";
+          form.style.right = "20px";
+          form.style.top = "20px";
+        });
+
         form.innerHTML = `
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-            <span style="cursor:pointer;font-weight:bold;" id="closeBtn">❌</span>
-          </div>
-          
-          <label style="font-size:13px;font-weight:600;">Tags</label>
-          <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;">
-            <input id="recTags" type="text" placeholder="comma separated" 
-              style="flex:1;padding:6px;border:1px solid #ccc;border-radius:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <h3 style="margin:0;font-size:16px;">Save Recording</h3>
+            <span style="cursor:pointer;font-size:18px;" id="closeBtn">✕</span>
           </div>
 
-          <label style="font-size:13px;font-weight:600;">Notes</label>
-          <textarea id="recNotes" rows="3" 
-            style="width:100%;margin:6px 0 12px;padding:6px;border:1px solid #ccc;border-radius:6px;"></textarea>
+          <label style="font-size:12px;letter-spacing:1px;display:block;margin-bottom:6px;">COLLECTION</label>
+          <select id="recCollection" style="width:100%;padding:10px;border-radius:20px;background:#2a2a2a;color:white;border:none;margin-bottom:18px;">
+            <option value="">Choose a collection</option>
+            <option value="inspiration">Inspiration</option>
+            <option value="motion">Motion</option>
+            <option value="editing">Editing</option>
+          </select>
 
-          <button id="recSave" 
-            style="width:100%;background:#4caf50;color:white;border:none;padding:10px;border-radius:8px;font-weight:bold;cursor:pointer;">
-            Create Fragment
-          </button>
+          <label style="font-size:12px;letter-spacing:1px;display:block;margin-bottom:6px;">TAG</label>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+            <input id="tagInput" type="text" placeholder="Add tag" 
+              style="flex:1;padding:10px;border-radius:20px;background:#2a2a2a;color:white;border:none;">
+            <button id="addTagBtn" style="width:34px;height:34px;border-radius:50%;border:none;background:#444;color:white;cursor:pointer;">＋</button>
+          </div>
+          <div id="tagContainer" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;"></div>
+
+          <label style="font-size:12px;letter-spacing:1px;display:block;margin-bottom:6px;">NOTES</label>
+          <textarea id="recNotes" rows="3" placeholder="Type here to add a note..." 
+            style="width:100%;padding:12px;border-radius:12px;background:#2a2a2a;color:white;border:none;margin-bottom:18px;"></textarea>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <button id="privacyBtn" 
+              style="flex:1;margin-right:10px;padding:10px;border-radius:20px;background:transparent;border:1px solid white;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+              🔒 Private
+            </button>
+            <button id="recSave" 
+              style="flex:1;background:white;color:black;border:none;padding:10px;border-radius:20px;font-weight:bold;cursor:pointer;">
+              Create Fragment
+            </button>
+          </div>
         `;
         document.body.appendChild(form);
 
-        form.querySelector("#closeBtn").onclick = () => form.remove();
+        // Close handler
+        form.querySelector("#closeBtn").onclick = () => {
+          form.remove();
+          overlays.forEach((o) => o.remove());
+          hoverBtn.style.display = "block";
+        };
+
+        // Privacy toggle
+        const privacyBtn = form.querySelector("#privacyBtn");
+        let isPrivate = true;
+        privacyBtn.onclick = () => {
+          isPrivate = !isPrivate;
+          privacyBtn.textContent = isPrivate ? "🔒 Private" : "🌐 Public";
+        };
+
+        // Tag pills
+        const tagInput = form.querySelector("#tagInput");
+        const tagContainer = form.querySelector("#tagContainer");
+        const addTagBtn = form.querySelector("#addTagBtn");
+        const tags = [];
+
+        function renderTags() {
+          tagContainer.innerHTML = "";
+          tags.forEach((tag, idx) => {
+            const pill = document.createElement("div");
+            pill.innerHTML = `<span>${tag}</span> <span style="cursor:pointer;">✕</span>`;
+            pill.style.background = "#000";
+            pill.style.padding = "6px 12px";
+            pill.style.borderRadius = "20px";
+            pill.style.display = "flex";
+            pill.style.alignItems = "center";
+            pill.style.gap = "6px";
+            pill.style.fontSize = "13px";
+            pill.querySelector("span:last-child").onclick = () => {
+              tags.splice(idx, 1);
+              renderTags();
+            };
+            tagContainer.appendChild(pill);
+          });
+        }
+
+        addTagBtn.onclick = () => {
+          const value = tagInput.value.trim();
+          if (value && !tags.includes(value)) {
+            tags.push(value);
+            tagInput.value = "";
+            renderTags();
+          }
+        };
+
+        // Save handler
         form.querySelector("#recSave").onclick = () => {
           const metadata = {
-            tags: form.querySelector("#recTags").value,
             notes: form.querySelector("#recNotes").value,
+            tags: tags.join(","),
             sourceURL: window.location.href,
-            user_id: "demo-user-123" // use auth0 to make dynamic
+            user_id: "demo-user-123",
+            collection: form.querySelector("#recCollection").value,
+            privacy: isPrivate ? "private" : "public",
           };
           uploadToBackend(blob, metadata);
           form.remove();
+          overlays.forEach((o) => o.remove());
+          hoverBtn.style.display = "block";
         };
       };
 
@@ -236,7 +326,6 @@ function injectButtons() {
 
       stopBtn.onclick = () => {
         if (recorder && recorder.state === "recording") {
-          cleanupUI();
           recorder.stop();
         }
       };

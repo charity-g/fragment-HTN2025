@@ -15,10 +15,10 @@ async function uploadToBackend(blob) {
 
     const data = await resp.json();
     console.log("Upload response:", data);
-    alert("Uploaded to backend: " + JSON.stringify(data));
+    // alert("Uploaded to backend: " + JSON.stringify(data));
   } catch (err) {
     console.error("Error uploading video:", err);
-    alert("Upload failed: " + err.message);
+    // alert("Upload failed: " + err.message);
   }
 }
 
