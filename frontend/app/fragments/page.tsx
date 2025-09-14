@@ -33,14 +33,7 @@ function FragmentsContent() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-white">
-      <HeaderSection />
-      <UserProfileSection is_self={true} />
-      <FragmentNavbar currrouter="/fragments" />
-      
-
       <MasonryGrid gifs={gifs} />
-    </div>
   );
 }
 
@@ -49,7 +42,10 @@ export default function Page() {
   const { results, searchPerformed } = useSearch();
 
   return (
-    <div className="bg-black min-h-screen text-white">
+    <div className="min-h-screen bg-[#0D0D0D] text-white">
+      <HeaderSection />
+      <UserProfileSection is_self={true} />
+      <FragmentNavbar currrouter="/fragments" />
       {/* Conditional rendering - search results OR regular fragments content */}
       {searchPerformed ? (
         <SearchResultsGrid results={results} />
