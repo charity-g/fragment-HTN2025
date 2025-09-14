@@ -14,9 +14,10 @@ from config import settings
 from dependencies import PermissionsValidator, validate_token
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from s3_utils import upload_file_to_s3
-from routes import videos, users
+from routes import videos, users, opensearch
 from summarizeClips import processClip
 import json
+import subprocess
 
 app = FastAPI()
 
@@ -74,6 +75,23 @@ async def upload_video(
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
+    # Get width and height using ffprobe
+    try:
+        ffprobe_cmd = [
+            "ffprobe", "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=width,height",
+            "-of", "json",
+            file_path
+        ]
+        result = subprocess.run(ffprobe_cmd, capture_output=True, text=True)
+        info = json.loads(result.stdout)
+        width = str(info["streams"][0]["width"])
+        height = str(info["streams"][0]["height"])
+    except Exception as e:
+        print(f"Could not extract video dimensions: {e}")
+        width, height = "720", "480"
+
     metadata = {}
     if notes:
         metadata["notes"] = notes
@@ -91,15 +109,21 @@ async def upload_video(
     if user_id:
         metadata["user_id"] = user_id
 
+    # Add width and height to metadata
+    metadata["width"] = width
+    metadata["height"] = height
+
     genAIData = processClip(file_path)
     if genAIData:
-        # ✅ Convert dict → JSON string
-        metadata["genAIData"] = json.dumps(genAIData)
+        if genAIData['editingInstructions']:
+            metadata["editingInstructions"] = json.dumps(genAIData['editingInstructions'])
+        if genAIData['videoSummary']:
+            metadata["videoSummary"] = json.dumps(genAIData['videoSummary'])
+        if genAIData['tags']:
+            metadata["initial_tags"] += json.dumps(genAIData['tags'])
 
     s3_bucket = "fragment-webm"
     s3_key = f"uploads/{video_id}.webm"
-
-    # ✅ Pass metadata as strings only
     upload_file_to_s3(file_path, s3_bucket, s3_key, metadata=metadata if metadata else None)
 
     os.remove(file_path)
@@ -111,10 +135,14 @@ async def upload_video(
         "notes": notes,
         "tags": tags,
         "user_id": user_id,
+        "width": width,
+        "height": height,
     }
+
 
 app.include_router(videos.router, prefix="/videos", tags=["videos"])
 app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(opensearch.router, prefix="/opensearch", tags=["opensearch"])
 
 if __name__ == "__main__":
     if len(sys.argv) >= 1 and sys.argv[0] == "dev":
@@ -123,14 +151,14 @@ if __name__ == "__main__":
         uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
-# if __name__ == "__main__":
-#     uvicorn.run(
-#         app,
-#         host="0.0.0.0",
-#         port=settings.port,
-#         reload=settings.reload,
-#         server_header=False,
-#     )
+# Using subprocess to call ffprobe (from ffmpeg) is the standard and efficient way to get width/height of a video file in Python.
+# ffprobe is lightweight, fast, and does not require loading the entire video into memory.
+# There is no significant difference in efficiency between using subprocess with ffprobe and using ffmpeg directly for just metadata extraction.
+# For metadata (width/height), ffprobe is preferred over ffmpeg because it's designed for probing, not transcoding.
+
+# Your current approach:
+# subprocess.run(["ffprobe", ...])
+# is efficient and recommended for this use case.
 
 
 

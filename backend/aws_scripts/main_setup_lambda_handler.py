@@ -10,7 +10,7 @@ dynamodb = boto3.resource('dynamodb')
 mediaconvert = boto3.client('mediaconvert')
 table = dynamodb.Table('fragments')
 
-def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
+def create_gif_with_mediaconvert(input_s3_uri: str, video_id: str, width: int, height: int):
     # Get MediaConvert endpoint
     response = mediaconvert.describe_endpoints()
     endpoint = response['Endpoints'][0]['Url']
@@ -20,7 +20,7 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
     
     # Job settings for GIF conversion
     job_settings = {
-        'Role': 'arn:aws:iam::348076083335:role/MediaConvertRole',  # created role
+        'Role': 'arn:aws:iam::348076083335:role/MediaConvertRole',
         'Settings': {
             'Inputs': [{
                 'FileInput': input_s3_uri,
@@ -31,7 +31,7 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
                 'OutputGroupSettings': {
                     'Type': 'FILE_GROUP_SETTINGS',
                     'FileGroupSettings': {
-                        'Destination': output_s3_uri
+                        'Destination': f's3://fragment-gifs/{video_id}'
                     }
                 },
                 'Outputs': [{
@@ -47,16 +47,14 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
                                 'FramerateConversionAlgorithm': 'DUPLICATE_DROP'
                             }
                         },
-                        'Width': 720,
-                        'Height': 480,
+                        'Width': width,
+                        'Height': height,
                         'TimecodeInsertion': 'DISABLED'
                     }
                 }]
             }]
         }
     }
-    
-    # Submit job
     job = mc_client.create_job(**job_settings)
     return job['Job']['Id']
 
@@ -104,73 +102,63 @@ def lambda_handler(event, context):
         
         video_id = key.split('/')[-1].split('.')[0]  # Remove file extension
         timestamp = datetime.utcnow().isoformat() + 'Z'
-        
+        width = int(response['Metadata'].get('width', 720))
+        height = int(response['Metadata'].get('height', 480))
+
         temp_webm = f'/tmp/{video_id}.webm'
-        temp_gif = f'/tmp/{video_id}.gif'
-        
+
         s3.download_file(bucket, key, temp_webm)
         print(f"Downloaded WebM: {temp_webm}")
         
         # Convert to GIF using MediaConvert
         input_s3_uri = f's3://{bucket}/{key}'
-        output_s3_uri = f's3://fragment-gifs/{video_id}.gif'
-        
+        gif_link = f'{video_id}_gif.gif'
+
+
         try:
-            job_id = create_gif_with_mediaconvert(input_s3_uri, output_s3_uri)
+            job_id = create_gif_with_mediaconvert(input_s3_uri, video_id, width=width, height=height)
             print(f"MediaConvert job created: {job_id} for video {video_id}")
-            
-            # Wait for job completion (max 5 minutes)
+
             if wait_for_job_completion(job_id, max_wait_seconds=300):
-                print(f"GIF conversion completed successfully!")
-<<<<<<< HEAD
-                # Generate pre-signed URL (valid for 1 hour)
-                gif_link = s3.generate_presigned_url(
-                    'get_object',
-                    Params={'Bucket': 'fragment-gifs', 'Key': f'{video_id}.gif'},
-                    ExpiresIn=3600
-                )
-=======
-                gif_link = output_s3_uri
->>>>>>> main
+                print("GIF conversion completed successfully!")
             else:
-                print(f"GIF conversion failed or timed out")
-                gif_link = f'error'  # Placeholder
-                
+                print("GIF conversion failed or timed out")
+                gif_link = None
         except Exception as e:
             print(f"MediaConvert job failed: {e}")
-            gif_link = f'error'  # Placeholder
-        
-        # Clean up temp files
+            gif_link = None
+
         try:
             os.remove(temp_webm)
-        except:
+        except Exception:
             pass
-        
+
         # Write to DynamoDB - Full video record
         dynamo_item = {
             'video_id': video_id,
             'tags': [],
             'user_id': response['Metadata'].get('user_id', 'system'),
-            'is_public': False,  # default to private
+            'is_public': False,
             'gif_link': gif_link,
             'webm_link': f's3://{bucket}/{key}',
-            'user_id': 'system',  # Default user!
             'created_at': timestamp,
             'updated_at': timestamp
         }
         try:
             initial_tags = response['Metadata'].get('initial_tags', '')
             dynamo_item['tags'] = initial_tags.split(',') if initial_tags else []
+            dynamo_item['editingInstructions'] = response['Metadata'].get('editingInstructions', '')
+            dynamo_item['videoSummary'] = response['Metadata'].get('videoSummary', '')
         except Exception:
             dynamo_item['tags'] = []
 
         for key in ['title', 'description', 'source_link']:
-            if (key in response['Metadata']):
+            if key in response['Metadata']:
                 dynamo_item[key] = response['Metadata'].get(key, None)
 
         table.put_item(Item=dynamo_item)
         print(f"Saved to DynamoDB: {video_id}")
-        
+
         return {
             "status": "success",
             "video_id": video_id,
@@ -181,7 +169,7 @@ def lambda_handler(event, context):
         print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(
             key if 'key' in locals() else 'unknown',
             bucket if 'bucket' in locals() else 'unknown'
-        ))  
+        ))
         return {
             "status": "error",
             "error": str(e)

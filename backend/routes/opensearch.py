@@ -1,49 +1,29 @@
-from opensearchpy import OpenSearch, RequestsHttpConnection
-from requests_aws4auth import AWS4Auth
-import boto3
+import requests
+from fastapi import APIRouter
+import json
 
-region = 'us-east-1'  # your region
-service = 'es'
-INDEX_NAME = '.kibana_1'  
+opensearch_url = "https://search-fragment-opensearch-or6bk37m3wqja5rog4rtn3sog4.us-east-1.es.amazonaws.com/fragments/_search"
 
-# Get IAM credentials from environment / instance / role
-session = boto3.Session()
-credentials = session.get_credentials()
-awsauth = AWS4Auth(
-    credentials.access_key,
-    credentials.secret_key,
-    region,
-    service,
-    session_token=credentials.token
-)
+router = APIRouter()
 
-host = 'search-fragment-opensearch-or6bk37m3wqja5rog4rtn3sog4.us-east-1.es.amazonaws.com'  
-
-client = OpenSearch(
-    hosts=[{'host': host, 'port': 443}],
-    http_auth=awsauth,
-    use_ssl=True,
-    verify_certs=True,
-    connection_class=RequestsHttpConnection
-)
-
-# Search
-def search_opensearch(query_string: str):
-    body = {
+@router.get("/test/{user_id}")
+async def test_opensearch(user_id: str):
+    query = {
         "query": {
-            "multi_match": {
-                "query": query_string,
-                "fields": ["title", "content", "tags"]  # adjust fields as needed
+            "bool": {
+                "must": [
+                    { "match": { "user_id": user_id } },
+                    # { "match": { "tags": "motion" } }
+                ]
             }
         }
     }
-    results = client.search(index=INDEX_NAME, body=body)
-    return results
-
-# Example usage:
-if __name__ == "__main__":
-    query = "apple pie"
-    result = search_opensearch(query)
-    print(result)
-    print(result['hits']['hits']  # <-- get hits here
-    )   
+    # Make the actual HTTP request to OpenSearch
+    response = requests.get(
+        opensearch_url,
+        headers={"Content-Type": "application/json"},
+        data=json.dumps(query)
+    )
+    result = response.json()
+    hits = result.get("hits", {}).get("hits", [])
+    return {"status": "success", "hits": hits}
