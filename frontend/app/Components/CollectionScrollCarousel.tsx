@@ -36,8 +36,8 @@ const CollectionScrollCarousel = ({ collections }: { collections: Collection[] }
       </button>
       <div
         ref={scrollRef}
-        className="overflow-x-auto max-w-xl scrollbar-hide"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        className="overflow-x-auto scrollbar-hide"
+        style={{ WebkitOverflowScrolling: "touch", maxWidth: "920px" }} // 4 cards * 220px + gaps
       >
         <div className="flex space-x-6 snap-x snap-mandatory px-4">
           {collections.map((collection, id) => (

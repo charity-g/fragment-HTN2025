@@ -20,9 +20,13 @@ const CollectionCard: React.FC<{ collection: Collection}> = ({ collection }) => 
       </div>
       <div className="py-4 text-left">
         <h3 className="text-lg font-semibold">{collection.title}</h3>
-        <p className="text-sm text-gray-500">
-          {collection.count} fragments • {collection.privacy}
-        </p>
+        {collection.user_id ? ( <p className="text-sm text-gray-500">
+         @{collection.user_id} • {collection.count || "Collection of"} fragments 
+        </p>) : (
+          <p className="text-sm text-gray-500">
+            {collection.count || "Collection of"} fragments • {collection.privacy}
+          </p>
+        )}
       </div>
     </div>
   );

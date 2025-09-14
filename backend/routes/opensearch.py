@@ -108,8 +108,8 @@ async def get_all_documents():
 
 @router.get("/search")
 async def fuzzy_search(
-    q: str,
-    user_id: str,
+    q: str = None,
+    user_id: str = None,
     size: int = 20,
     from_: int = 0
 ):
@@ -257,6 +257,65 @@ async def search_system_videos(q: str):
         return {
             "status": "success",
             "query": q,
+            "total_hits": total,
+            "returned_documents": len(documents),
+            "documents": documents
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+
+@router.post("/non-matching-user")
+async def search_non_matching_user(user_id: str):
+    """Search for documents with a user_id that does not match any documents, gif_link is not empty, and tags has at least one element"""
+    try:
+        print(f"🔍 Non-Matching User Search Debug - User ID: '{user_id}'")
+        
+        query = {
+            "query": {
+                "bool": {
+                    "must_not": [
+                        {"term": {"user_id": user_id}},
+                        {"term": {"gif_link": ""}},
+                        {"term": {"gif_link": None}},
+                        {"term": {"tags": ""}}
+                    ],
+                    "filter": [
+                        {"exists": {"field": "gif_link"}},
+                        {"exists": {"field": "tags"}},
+                    ]
+                }
+            },
+            "size": 20,
+            "sort": [
+                {"_score": {"order": "desc"}}
+            ],
+            "highlight": {
+                "fields": {
+                    "tags": {},
+                    "description": {}
+                }
+            }
+        }
+        
+        url = f"{host}/{index_name}/_search"
+        response = requests.get(url, auth=awsauth, json=query)
+        result = response.json()
+        
+        hits = result.get("hits", {}).get("hits", [])
+        total = result.get("hits", {}).get("total", {}).get("value", 0)
+        
+        documents = []
+        for hit in hits:
+            doc = hit["_source"].copy()
+            doc["_score"] = hit["_score"]
+            if "highlight" in hit:
+                doc["highlight"] = hit["highlight"]
+            documents.append(doc)
+        
+        return {
+            "status": "success",
             "total_hits": total,
             "returned_documents": len(documents),
             "documents": documents
