@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
-import { useSearch } from "@/contexts/SearchContext";
+import { useSearch } from "./contexts/SearchContext";
 import SearchResultsGrid from "@/app/Components/SearchResultsGrid";
 import styles from "@/app/landing/Landing.module.css";
 import logo from "@/app/src/images/logo.svg";
@@ -76,17 +76,4 @@ function LandingContent() {
   );
 }
 
-export default function Landing() {
-  const { results, searchPerformed } = useSearch();
-
-  return (
-    <div className="bg-black min-h-screen text-white">
-      {/* Conditional rendering - search results OR regular landing content */}
-      {searchPerformed ? (
-        <SearchResultsGrid results={results} />
-      ) : (
-        <LandingContent />
-      )}
-    </div>
-  );
-}
+export default LandingContent;
