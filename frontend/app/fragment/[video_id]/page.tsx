@@ -1,28 +1,46 @@
-<<<<<<< HEAD
-import Link from "next/link";
-=======
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import logo from "@/app/src/images/logo.svg";
->>>>>>> 18a6ca3a0002059266e53dd25c80cd6680f11298
 
-export default async function FragmentPage({ params }: { params: { video_id: string } }) {
-  const { video_id } = params;
+export default function FragmentPage() {
+  const params = useParams();
+  const video_id = params["video_id"];
   const router = useRouter();
 
-  // Fetch video data
-  const res = await fetch(`http://localhost:8000/opensearch/video/${video_id}`, {
-    cache: "no-store",
-  });
+  const [gifData, setGifData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!res.ok) {
-    return <p className="text-red-500">Error fetching video {video_id}</p>;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`http://localhost:8000/opensearch/video/${video_id}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          setError(`Error fetching video ${video_id}`);
+          return;
+        }
+        const data = await res.json();
+        setGifData(data.document._source);
+        
+      } catch (e) {
+        setError("Error fetching video data");
+      }
+    };
+    fetchData();
+  }, [video_id]);
+
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
   }
-
-  const data = await res.json();
-  const gifData = data.document._source;
+  if (!gifData) {
+    return <p className="text-gray-400">Loading...</p>;
+  }
 
   const abs_gif_link = "https://fragment-gifs.s3.amazonaws.com/" + gifData.gif_link;
 
@@ -57,11 +75,7 @@ export default async function FragmentPage({ params }: { params: { video_id: str
         </div>
 
         {/* Right: Metadata Panel */}
-<<<<<<< HEAD
-        <Linkside className="w-[340px] bg-[#1e1e1e] rounded-2xl p-6 flex flex-col gap-6 shadow-lg">
-=======
         <aside className="w-[360px] bg-[#1e1e1e] rounded-2xl p-6 flex flex-col gap-6 shadow-xl">
->>>>>>> 18a6ca3a0002059266e53dd25c80cd6680f11298
           {/* Top Bar */}
           <div className="flex justify-between items-center text-sm">
             <span className="font-medium text-gray-300 truncate">
@@ -117,22 +131,6 @@ export default async function FragmentPage({ params }: { params: { video_id: str
             />
           </div>
 
-<<<<<<< HEAD
-          {/* How it's made */}
-          <details className="bg-[#141414] rounded-lg p-4 text-sm text-gray-300">
-            <summary className="cursor-pointer font-medium text-white">
-              HOW IT’S MADE ✨
-            </summary>
-            <p className="mt-2 text-gray-400">
-              This effect is called a flash cut. It’s done by trimming 2–3 frames out of
-              the clip, creating a jarring transition. Here’s how you can replicate it in{" "}
-              <Link href="#" className="underline hover:text-white">
-                Premiere
-              </Link>
-              .
-            </p>
-          </details>
-=======
           {/* How it's made (editingInstructions) */}
           {gifData.editingInstructions && (
             <details className="bg-[#141414] rounded-lg p-4 text-sm text-gray-300">
@@ -161,7 +159,6 @@ export default async function FragmentPage({ params }: { params: { video_id: str
               </a>
             </div>
           )}
->>>>>>> 18a6ca3a0002059266e53dd25c80cd6680f11298
 
           {/* Buttons */}
           <div className="flex gap-3 mt-auto">
@@ -172,7 +169,7 @@ export default async function FragmentPage({ params }: { params: { video_id: str
               Edit Fragment
             </button>
           </div>
-        </Linkside>
+        </aside>
       </div>
     </main>
   );

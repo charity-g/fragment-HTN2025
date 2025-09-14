@@ -4,14 +4,29 @@ import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserPlus, faUserMinus } from "@fortawesome/free-solid-svg-icons";
+import { useEffect, useState } from "react";
 
-export default async function FragmentNavbar({ foreignUserId = null, currrouter }: { foreignUserId?: string | null, currrouter: string }) {
+export default function FragmentNavbar({ foreignUserId = null, currrouter }: { foreignUserId?: string | null, currrouter: string }) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
-  const is_following = foreignUserId && await fetch(`http://localhost:8000/users/${user?.sub}/is_following`).then(res => res.json()).then(data => data.following.includes(foreignUserId)).catch(() => false);
+  const [isFollowing, setIsFollowing] = useState(false);
   const focused = "text-sm text-white border-b-2 border-white pb-2 bg-transparent";
   const unfocused = "text-sm text-gray-400 hover:text-white pb-2 bg-transparent";
 
+  useEffect(() => {
+    const checkFollowing = async () => {
+      if (foreignUserId && user?.sub) {
+        try {
+          const res = await fetch(`http://localhost:8000/users/${user.sub}/is_following`);
+          const data = await res.json();
+          setIsFollowing(data.following.includes(foreignUserId));
+        } catch {
+          setIsFollowing(false);
+        }
+      }
+    };
+    checkFollowing();
+  }, [foreignUserId, user?.sub]);
 
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
@@ -38,7 +53,7 @@ export default async function FragmentNavbar({ foreignUserId = null, currrouter 
       <div className="flex gap-3">
         {foreignUserId ? (
           <>
-            {is_following ? (
+            {isFollowing ? (
               <button
                 className="border border-gray-600 text-red-400 hover:text-white bg-transparent px-4 py-2 rounded text-sm flex items-center gap-2"
                 onClick={async () => {
@@ -50,7 +65,7 @@ export default async function FragmentNavbar({ foreignUserId = null, currrouter 
                         "Content-Type": "application/json",
                       },
                     });
-                    // Optionally show feedback to user here
+                    setIsFollowing(false);
                   } catch (e) {
                     console.error("Failed to unfollow user:", e);
                   }
@@ -71,7 +86,7 @@ export default async function FragmentNavbar({ foreignUserId = null, currrouter 
                         "Content-Type": "application/json",
                       },
                     });
-                    // Optionally show feedback to user here
+                    setIsFollowing(true);
                   } catch (e) {
                     console.error("Failed to follow user:", e);
                   }
