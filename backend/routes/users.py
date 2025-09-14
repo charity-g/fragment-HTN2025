@@ -163,7 +163,36 @@ async def get_user_tags(user_id: str):
     for item in response.get("Items", []):
         tags = item.get("tags", [])
         for tag in tags:
+            if not tag:  # guard against empty tag
+                continue
             tag_set.add(tag)
 
     return {"status": "success", "user_id": user_id, "tags": list(tag_set)}
 
+
+
+@router.get("/{user_id}/collections")
+async def get_user_collections(user_id: str):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('fragments')
+    response = table.scan(
+        FilterExpression="user_id = :uid",
+        ExpressionAttributeValues={":uid": user_id}
+    )
+
+    collections_set = {}
+    for item in response.get("Items", []):
+        tags = item.get("tags", [])
+        for tag in tags:
+            if tag in collections_set:
+                collections_set[tag]["count"] += 1
+            else:
+                collections_set[tag] = {
+                    "count": 1,
+                    "gif_url": item.get("gif_link", ""),
+                    "title": tag,
+                    "privacy": item.get("privacy", "private")
+                }
+    return {"status": "success", "user_id": user_id, "collections": list(collections_set.values())}
+
+    
