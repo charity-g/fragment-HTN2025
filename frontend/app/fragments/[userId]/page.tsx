@@ -1,0 +1,43 @@
+"use client";
+
+import { useParams } from "next/navigation";
+import { useAuth } from "../../../hooks/useAuth";
+import { redirect } from "next/navigation";
+import HeaderSection from "@/app/Components/HeaderSection";
+import UserProfileSection from "@/app/Components/UserProfileSection";
+import UserResponse from "@/types/UserResponse";
+import { useEffect, useState } from "react";
+import FragmentNavbar from "@/app/Components/FragmentNavbar";
+
+export default function ForeignUserPage() {
+    const { user, error, isLoading } = useAuth();   
+    const params = useParams();
+    const userId = params.userId;
+
+    const [foreignUser, setForeignUser] = useState<UserResponse | null>(null);
+
+    useEffect(() => {
+        if (userId === user?.id) {
+            redirect("/fragments");
+            return;
+        }
+        const fetchUser = async () => {
+            const res = await fetch(`http://localhost:8000/users/${userId}`);
+            const data = await res.json();
+            setForeignUser(data);
+        };
+        fetchUser();
+    }, [userId, user?.id]);
+
+    if (!foreignUser) {
+        return <div className="h-full bg-[#0D0D0D] text-white">Loading...</div>;
+    }
+
+    return (
+        <div className="h-full bg-[#0D0D0D] text-white">
+            <HeaderSection />
+            <UserProfileSection is_self={false} name={foreignUser.name} username={foreignUser.username || userId} />
+            <FragmentNavbar is_self={false} currrouter="/fragments" />
+        </div>
+    );
+}

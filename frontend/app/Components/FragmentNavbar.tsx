@@ -3,35 +3,36 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
 
-export default function FragmentNavbar({ currrouter }: { currrouter: string }) {
+export default function FragmentNavbar({ is_self, currrouter }: { is_self: boolean, currrouter: string }) {
   const router = useRouter();
   const focused = "text-sm text-white border-b-2 border-white pb-2 bg-transparent";
   const unfocused = "text-sm text-gray-400 hover:text-white pb-2 bg-transparent";
   const { user, isLoading } = useAuth();
+
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
       <nav className="flex gap-8">
         <button
           className={currrouter === "/fragments" ? focused : unfocused}
-          onClick={() => router.push("/fragments")}
+          onClick={() => is_self ? router.push("/fragments") : router.push(`/fragments/${user.id}`)}
         >
           {currrouter === "/fragments" ? "[FRAGMENTS]" : "FRAGMENTS"}
         </button>
         <button
-          className={currrouter === "/collections" ? focused : unfocused}
-          onClick={() => router.push("/collections")}
+            className={currrouter === "/collections" ? focused : unfocused}
+            onClick={() => is_self ? router.push("/collections") : router.push(`/collections/${user.id}`)}
         >
           {currrouter === "/collections" ? "[COLLECTIONS]" : "COLLECTIONS"}
         </button>
-        <button
+       {is_self && <button
           className={currrouter === "/following" ? focused : unfocused}
           onClick={() => router.push("/following")}
         >
           {currrouter === "/following" ? "[FOLLOWING]" : "FOLLOWING"}
-        </button>
+        </button>}
       </nav>
       <div className="flex gap-3">
-        {currrouter === "/fragments" && (
+        {currrouter === "/fragments" && is_self && (
           <>
             <button className="border border-gray-600 text-gray-300 hover:text-white bg-transparent px-4 py-2 rounded text-sm">
               Tag
