@@ -13,23 +13,19 @@ import { useUser } from "@auth0/nextjs-auth0";
 export default function ForeignUserPage() {
   const { user } = useUser();  
     const params = useParams();
-    const userId = params.userId;
+    const user_id = params.user_id;
 
     const [foreignUser, setForeignUser] = useState<UserResponse | null>(null);
     const [gifs, setGifs] = useState([]);
 
     useEffect(() => {
-        if (userId === user?.sub) {
-            redirect("/fragments");
-            return;
-        }
         const fetchUser = async () => {
-            const res = await fetch(`http://localhost:8000/users/${userId}`);
+            const res = await fetch(`http://localhost:8000/users/${user_id}`);
             const data = await res.json();
             setForeignUser(data);
         };
         const fetchGifs = async () => {
-            const res = await fetch(`http://localhost:8000/users/${userId}/gifs`, {
+            const res = await fetch(`http://localhost:8000/users/${user_ids}/gifs`, {
                 cache: "no-store",
             });
             const data = await res.json();
@@ -37,20 +33,21 @@ export default function ForeignUserPage() {
         }
         fetchUser();
         fetchGifs();
-    }, [userId, user?.id]);
+    }, [user_id, user?.id]);
+
+
+    if (!user_id || user_id === user?.sub) {
+        redirect("/fragments");
+    }
 
     if (!foreignUser) {
         return <div className="h-full bg-[#0D0D0D] text-white">Loading...</div>;
     }
-    if (!userId) {
-        redirect("/fragments");
-    }
-
     return (
         <div className="h-full bg-[#0D0D0D] text-white">
             <HeaderSection />
-            <UserProfileSection is_self={false} name={foreignUser.name} username={foreignUser.username || userId} />
-            <FragmentNavbar foreignUserId={userId} currrouter="/fragments" />
+            <UserProfileSection is_self={false} name={foreignUser.name} username={foreignUser.username || user_id} />
+            <FragmentNavbar foreignuser_id={user_id} currrouter="/fragments" />
             <MasonryGrid gifs={gifs || []} />
         </div>
     );

@@ -75,17 +75,6 @@ function LandingContent() {
         </div>
       </section>
 
-<<<<<<< HEAD
-      {/* Bottom caption & CTA */}
-      <div className="landingFooter">
-        <p className={styles.caption}>
-          Clip the videos that spark your vision and never lose them.
-        </p>
-        <Link className={styles.cta} href="/extension">
-          Get browser extension
-        </Link>
-      </div>
-=======
       {/* Demo Section */}
       <section id="demo" className={styles.demoSection}>
         <div className={styles.demoContent}>
@@ -187,7 +176,6 @@ function LandingContent() {
           </a>
         </div>
       </section>
->>>>>>> 18a6ca3a0002059266e53dd25c80cd6680f11298
     </main>
   );
 }

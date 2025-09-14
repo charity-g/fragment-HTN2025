@@ -7,6 +7,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-      <SearchProvider>{children}</SearchProvider>
+    <html lang="en">
+      <body>
+        <SearchProvider>{children}</SearchProvider>
+      </body>
+    </html>
   );
 }
