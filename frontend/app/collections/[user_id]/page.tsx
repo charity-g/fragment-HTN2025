@@ -9,9 +9,9 @@ import { useSearch } from "../../contexts/SearchContext";
 import CollectionGrid from "../../Components/CollectionGrid";
 
 import Collection from "@/types/Collection";
-import { useAuth } from "@/hooks/useAuth";
 import { redirect, useParams } from "next/navigation";
 import UserResponse from "@/types/UserResponse";
+import { useUser } from "@auth0/nextjs-auth0";
 
 // Regular Collections Content
 function CollectionsContent({collections}: {collections: Collection[]}) {
@@ -35,7 +35,7 @@ function CollectionsContent({collections}: {collections: Collection[]}) {
 
 export default function Collections() {
   const { results, searchPerformed } = useSearch();
-     const { user } = useAuth();   
+     const { user } = useUser();   
     const params = useParams();
     const userId = params.user_id; // useParams() returns an object with keys matching your dynamic route segments
     
@@ -43,25 +43,20 @@ export default function Collections() {
     const [collections, setCollections] = useState([]);
 
     useEffect(() => {
-        console.log("userId",userId, "user,", user)
-        if (userId !== undefined && userId === user?.user_id) {
-            redirect("/collections");
-            return;
-        }
         const fetchUser = async () => {
             const res = await fetch(`http://localhost:8000/users/${userId}`);
             const data = await res.json();
             setForeignUser(data);
         };
-        const fetchGifs = async () => {
+        const fetchCollections = async () => {
             const res = await fetch(`http://localhost:8000/users/${userId}/collections`, {
                 cache: "no-store",
             });
             const data = await res.json();
-            setCollections(data.gifs || []);
+            setCollections(data.collections || []);
         }
         fetchUser();
-        fetchGifs();
+        fetchCollections();
     }, [userId, user?.id]);
 
 
@@ -69,9 +64,9 @@ export default function Collections() {
     if (!foreignUser) {
         return <div className="h-full bg-[#0D0D0D] text-white">Loading...</div>;
     }
-    // if (!userId) {
-    //     redirect("/collections");
-    // }
+    if (!userId || userId === user?.sub) {
+        redirect("/collections");
+    }
   return (
     <div className="h-full bg-[#0D0D0D] text-white">
       <HeaderSection />
