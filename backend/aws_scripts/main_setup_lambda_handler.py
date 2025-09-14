@@ -106,14 +106,13 @@ def lambda_handler(event, context):
         timestamp = datetime.utcnow().isoformat() + 'Z'
         
         temp_webm = f'/tmp/{video_id}.webm'
-        temp_gif = f'/tmp/{video_id}.gif'
         
         s3.download_file(bucket, key, temp_webm)
         print(f"Downloaded WebM: {temp_webm}")
         
         # Convert to GIF using MediaConvert
         input_s3_uri = f's3://{bucket}/{key}'
-        output_s3_uri = f's3://fragment-gifs/{video_id}.gif'
+        output_s3_uri = f's3://fragment-gifs/{video_id}_gif.gif'
         
         # Get dynamic width and height from metadata if present, else use defaults
         width = int(response['Metadata'].get('width', 720))
