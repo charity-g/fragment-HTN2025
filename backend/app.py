@@ -67,6 +67,8 @@ async def upload_video(
     notes: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
     sourceURL: Optional[str] = Form(None),
+    privacy: Optional[str] = Form(None),
+    collection: Optional[str] = Form(None),
     user_id: Optional[str] = Form(None)
 ):
     video_id = str(uuid.uuid4())
@@ -90,6 +92,11 @@ async def upload_video(
         metadata["sourceURL"] = sourceURL
     if user_id:
         metadata["user_id"] = user_id
+    if privacy:
+        print(privacy)
+        metadata["privacy"] = privacy
+    if collection:
+        metadata["collection"] = collection
 
     genAIData = processClip(file_path)
     if genAIData:
