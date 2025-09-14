@@ -23,18 +23,7 @@ export default function GifComponent({ gif }: { gif: gifObject }) {
 
   return (
     <div className="bg-gray-800 rounded-lg flex items-center justify-center">
-      {gif.gif_url ? (
-        <video
-          ref={videoRef}
-          src={gif.gif_url}
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{ width: "100%", height: "auto", objectFit: "cover" }}
-          className="rounded"
-        />
-      ) : (
+      {gif.gif_url && (
         <img
           src={gif.gif_url}
           style={{ width: "100%", height: "auto", objectFit: "cover" }}
