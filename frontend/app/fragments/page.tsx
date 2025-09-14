@@ -2,11 +2,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch, faCog, faGem } from "@fortawesome/free-solid-svg-icons"
 
 // Next.js Server Component
+
 export default async function Page() {
   // Fetch GIFs from backend
   const res = await fetch("http://localhost:8000/users/system/gifs", { cache: "no-store" });
   const data = await res.json();
-  const gifs: string[] = (data.gifs || []).map((gif: any) => gif.gif_link || gif.url || gif);
+  const gifs: gifObject[] = (data.gifs || []);
+  console.log("Fetched GIFs:", gifs);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -61,16 +63,14 @@ export default async function Page() {
 }
 
 // Accept gifs prop and render images
-function MasonryGrid({ gifs }: { gifs: string[] }) {
+function MasonryGrid({ gifs }: { gifs: gifObject[] }) {
   return (
     <div className="p-6">
       <div className="flex gap-4 h-screen">
-        {[0, 1, 2].map(col => (
+        {[0, 1, 2, 3, 4].map(col => (
           <div key={col} className="flex flex-col gap-4 flex-1">
-            {gifs.filter((_, i) => i % 3 === col).map((gifUrl, idx) => (
-              <div key={idx} className="bg-gray-800 rounded-lg flex items-center justify-center">
-                <img src={gifUrl} className="max-w-full max-h-full rounded" alt={'gif'} />
-              </div>
+            {gifs.filter((_, i) => i % 5 === col).map(({gif_url}, idx) => (
+              <GifComponent key={idx} gifUrl={gif_url} />
             ))}
           </div>
         ))}
@@ -78,3 +78,23 @@ function MasonryGrid({ gifs }: { gifs: string[] }) {
     </div>
   )
 }
+
+function GifComponent({ gifUrl }: { gifUrl: string }) {
+  return (<div className="bg-gray-800 rounded-lg flex items-center justify-center">
+        {gifUrl.endsWith('.gif') ? (
+          <video src={gifUrl} autoPlay loop muted playsInline style={{ width: "100%", height: "auto", objectFit: "cover" }} className="rounded" />
+        ) : (
+          <img src={gifUrl} style={{ width: "100%", height: "auto", objectFit: "cover" }} className="rounded" alt={'gif'} />
+        )}
+      </div>)
+}
+
+
+type gifObject = {
+  gif_url: string;
+  user_id: string;
+  title?: string;
+  description?: string;
+  created_at?: string;
+  tags?: string[];
+};

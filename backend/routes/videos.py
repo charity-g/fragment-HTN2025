@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Form
 from fastapi.responses import JSONResponse
 import boto3
+from typing import Dict
 
 router = APIRouter()
 
@@ -26,14 +27,20 @@ async def get_video(video_id: str):
     "get webm"
     key = f"uploads/{video_id}.webm"
     url = get_presigned_url(VIDEO_BUCKET, key)
-    return {"status": "success", "task_id": video_id, "video_url": url}
+    return JSONResponse(
+        status_code=200,
+        content={"status": "success", "task_id": video_id, "video_url": url}
+    )
 
 @router.get("/gif/{video_id}")
 async def get_gif(video_id: str):
     "get gif"
     key = f"{video_id}_gif.gif"
     url = get_presigned_url(GIF_BUCKET, key)
-    return {"status": "success", "task_id": video_id, "video_url": url}
+    return JSONResponse(
+        status_code=200,
+        content={"status": "success", "task_id": video_id, "video_url": url}
+    )
 
 # STRETCH ENDPOINT
 # @router.get("/mp4/{video_id}")
@@ -54,4 +61,41 @@ async def update_video_tags(video_id: str, tags: list[str]):
     )
     key = f"uploads/{video_id}.webm"
     url = get_presigned_url(VIDEO_BUCKET, key)
-    return {"status": "success", "video_id": video_id, "video_url": url, "tags": tags}
+    return JSONResponse(
+        status_code=200,
+        content={"status": "success", "video_id": video_id, "video_url": url, "tags": tags}
+    )
+
+
+@router.put("/{video_id}/visibility")
+async def update_video_visibility(video_id: str, visibility: bool = Form(...)):
+    "update video visibility"
+    try:
+        table.update_item(
+            Key={'video_id': video_id},
+            UpdateExpression="SET is_public = :v",
+            ExpressionAttributeValues={':v': visibility}
+        )
+        return JSONResponse(
+            status_code=200,
+            content={"status": "success", "video_id": video_id, "is_public": visibility}
+        )
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
+
+@router.put("/{video_id}/star")
+async def update_video_star(video_id: str, star: bool = Form(...)):
+    "update video star"
+    try:
+        table.update_item(
+            Key={'video_id': video_id},
+            UpdateExpression="SET is_starred = :s",
+            ExpressionAttributeValues={':s': star}
+        )
+        return JSONResponse(
+            status_code=200,
+            content={"status": "success", "video_id": video_id, "is_starred": star}
+        )
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
