@@ -141,7 +141,7 @@ async def fuzzy_search(
                         {
                             "multi_match": {
                                 "query": q,
-                                "fields": ["tags^2", "description"],  # Boost tags field
+                                "fields": ["tags^2", "description", "notes"],  # Boost tags field
                                 "type": "best_fields",
                                 "fuzziness": "AUTO",
                                 "prefix_length": 1,
@@ -214,7 +214,7 @@ async def search_system_videos(q: str):
                         {
                             "multi_match": {
                                 "query": q,
-                                "fields": ["tags^2", "description"],
+                                "fields": ["tags^2", "description", "notes"],
                                 "type": "best_fields",
                                 "fuzziness": "AUTO",
                                 "prefix_length": 1,

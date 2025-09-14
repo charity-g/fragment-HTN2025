@@ -6,6 +6,7 @@ async function uploadToBackend(blob, metadata) {
     formData.append("tags", metadata.tags || "");
     formData.append("notes", metadata.notes || "");
     formData.append("sourceURL", metadata.sourceURL || "");
+    formData.append("collection", metadata.collection || "");
     formData.append("privacy", metadata.privacy || "");
     formData.append("user_id", metadata.user_id || "");
   }
@@ -77,12 +78,7 @@ function injectButtons() {
         document.body.appendChild(div);
         overlays.push(div);
       }
-      makeOverlay({
-        top: "0px",
-        left: "0px",
-        width: "100%",
-        height: top + "px",
-      });
+      makeOverlay({ top: "0px", left: "0px", width: "100%", height: top + "px" });
       makeOverlay({
         top: bottom + "px",
         left: "0px",
@@ -173,9 +169,7 @@ function injectButtons() {
         return;
       }
 
-      recorder = new MediaRecorder(stream, {
-        mimeType: "video/webm;codecs=vp9",
-      });
+      recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9" });
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunks.push(e.data);
       };
@@ -208,8 +202,7 @@ function injectButtons() {
         // Animation styles
         form.style.transform = "scale(0.6)";
         form.style.opacity = "0";
-        form.style.transition =
-          "transform 0.25s ease-out, opacity 0.25s ease-out";
+        form.style.transition = "transform 0.25s ease-out, opacity 0.25s ease-out";
         form.style.right = "0px";
         form.style.top = "0px";
 
@@ -226,6 +219,14 @@ function injectButtons() {
             <h3 style="margin:0;font-size:16px;">Save Recording</h3>
             <span style="cursor:pointer;font-size:18px;" id="closeBtn">✕</span>
           </div>
+
+          <label style="font-size:12px;letter-spacing:1px;display:block;margin-bottom:6px;">COLLECTION</label>
+          <select id="recCollection" style="width:100%;padding:10px;border-radius:20px;background:#2a2a2a;color:white;border:none;margin-bottom:18px;">
+            <option value="">Choose a collection</option>
+            <option value="inspiration">Inspiration</option>
+            <option value="motion">Motion</option>
+            <option value="editing">Editing</option>
+          </select>
 
           <label style="font-size:12px;letter-spacing:1px;display:block;margin-bottom:6px;">TAG</label>
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
@@ -308,7 +309,8 @@ function injectButtons() {
             notes: form.querySelector("#recNotes").value,
             tags: tags.join(","),
             sourceURL: window.location.href,
-            user_id: "demo", // TODO. hardcoded
+            user_id: "system",
+            collection: form.querySelector("#recCollection").value,
             privacy: isPrivate ? "private" : "public",
           };
           uploadToBackend(blob, metadata);

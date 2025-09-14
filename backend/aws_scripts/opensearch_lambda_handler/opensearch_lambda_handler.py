@@ -37,6 +37,8 @@ def ensure_index_exists():
                     "title": {"type": "text"},
                     "description": {"type": "text"},
                     "tags": {"type": "keyword"},
+                    "notes": {"type": "text"},
+                    "sourceURL": {"type": "keyword"},
                     "created_at": {"type": "date", "format": "strict_date_optional_time||epoch_millis"},
                     "editingInstructions": {"type": "text"},
                     "videoSummary": {"type": "text"},
@@ -68,6 +70,20 @@ def transform_dynamodb_record(dynamodb_image):
             item[k] = v
     return item
 
+def get_current_document(video_id):
+    """Get the current document from OpenSearch to merge with partial updates"""
+    try:
+        url = f"{host}/{index_name}/_doc/{video_id}"
+        response = requests.get(url, auth=awsauth)
+        if response.status_code == 200:
+            return response.json()['_source']
+        else:
+            print(f"Document {video_id} not found in OpenSearch, returning empty dict")
+            return {}
+    except Exception as e:
+        print(f"Error getting current document {video_id}: {e}")
+        return {}
+
 def index_dynamo_item_to_opensearch(item):
     ensure_index_exists()
     doc_id = item['video_id']
@@ -76,6 +92,8 @@ def index_dynamo_item_to_opensearch(item):
         "video_id": item.get('video_id', ''),
         "description": item.get('description', ''),
         "tags": item.get('tags', []),
+        "notes": item.get('notes', ''),
+        "sourceURL": item.get('sourceURL', ''),
         "created_at": item.get('created_at', ''),
         "updated_at": item.get('updated_at', ''),
         "editingInstructions": item.get('editingInstructions', ''),
@@ -96,10 +114,24 @@ def lambda_handler(event, context):
         # decide what to do based on data update
         if event_name in ['INSERT', 'MODIFY']:
             # Handle new or modified records
-            # new image is new version of data
-            new_image = record['dynamodb']['NewImage'] 
-            item = transform_dynamodb_record(new_image)
-            index_dynamo_item_to_opensearch(item) # is a PUT
+            if event_name == 'INSERT':
+                # For INSERT, use the complete NewImage
+                new_image = record['dynamodb']['NewImage'] 
+                item = transform_dynamodb_record(new_image)
+                index_dynamo_item_to_opensearch(item)
+            else:  # MODIFY
+                # For MODIFY, we need to merge with existing data
+                # Get the current document from OpenSearch first
+                video_id = record['dynamodb']['Keys']['video_id']['S']
+                current_doc = get_current_document(video_id)
+                
+                # Transform the new partial data
+                new_image = record['dynamodb']['NewImage']
+                new_item = transform_dynamodb_record(new_image)
+                
+                # Merge with existing data (new data overwrites old)
+                merged_item = {**current_doc, **new_item}
+                index_dynamo_item_to_opensearch(merged_item)
             
         elif event_name == 'REMOVE':
             old_image = record['dynamodb']['OldImage'] # the old data
