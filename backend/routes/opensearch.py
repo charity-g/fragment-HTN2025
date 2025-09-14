@@ -105,3 +105,161 @@ async def get_all_documents():
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+@router.get("/search")
+async def fuzzy_search(
+    q: str,
+    user_id: str,
+    size: int = 20,
+    from_: int = 0
+):
+    """Fuzzy search across tags and description fields for a specific user"""
+    try:
+        print(f"🔍 Search Debug - Query: '{q}', User ID: '{user_id}'")
+        
+        # First, let's check what documents exist for this user
+        debug_query = {
+            "query": {
+                "term": {"user_id": user_id}
+            },
+            "size": 5
+        }
+        debug_url = f"{host}/{index_name}/_search"
+        debug_response = requests.get(debug_url, auth=awsauth, json=debug_query)
+        debug_result = debug_response.json()
+        debug_hits = debug_result.get("hits", {}).get("hits", [])
+        print(f"🔍 Documents for user '{user_id}': {len(debug_hits)} found")
+        for hit in debug_hits:
+            doc = hit.get("_source", {})
+            print(f"🔍   - Video ID: {doc.get('video_id')}, Tags: {doc.get('tags')}, Description: '{doc.get('description')}'")
+        
+        # Build the query with user filter
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "multi_match": {
+                                "query": q,
+                                "fields": ["tags^2", "description"],  # Boost tags field
+                                "type": "best_fields",
+                                "fuzziness": "AUTO",
+                                "prefix_length": 1,
+                                "max_expansions": 50
+                            }
+                        }
+                    ],
+                    "filter": [
+                        {"term": {"user_id": user_id}}
+                    ]
+                }
+            },
+            "size": size,
+            "from": from_,
+            "sort": [
+                {"_score": {"order": "desc"}}
+            ],
+            "highlight": {
+                "fields": {
+                    "tags": {},
+                    "description": {}
+                }
+            }
+        }
+        
+        print(f"🔍 OpenSearch Query: {json.dumps(query, indent=2)}")
+        
+        url = f"{host}/{index_name}/_search"
+        print(f"🔍 Request URL: {url}")
+        
+        response = requests.get(url, auth=awsauth, json=query)
+        print(f"🔍 Response Status: {response.status_code}")
+        
+        result = response.json()
+        print(f"🔍 OpenSearch Response: {json.dumps(result, indent=2)}")
+        
+        hits = result.get("hits", {}).get("hits", []) # the individual items
+        total = result.get("hits", {}).get("total", {}).get("value", 0)
+        
+        # Extract documents with highlights
+        documents = []
+        for hit in hits:
+            doc = hit["_source"].copy()
+            doc["_score"] = hit["_score"]
+            if "highlight" in hit: # hit will have the matched term highlighted like "tags": ["digital interface", "<em>calendar</em>", "masking"],
+                # this enables frontend to highlight the matched term
+                doc["highlight"] = hit["highlight"]
+            documents.append(doc)
+        
+        return {
+            "status": "success",
+            "query": q,
+            "total_hits": total,
+            "returned_documents": len(documents),
+            "documents": documents
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@router.get("/search-system")
+async def search_system_videos(q: str):
+    """Test search for system user videos"""
+    try:
+        print(f"🔍 System Search Debug - Query: '{q}'")
+        
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "multi_match": {
+                                "query": q,
+                                "fields": ["tags^2", "description"],
+                                "type": "best_fields",
+                                "fuzziness": "AUTO",
+                                "prefix_length": 1,
+                                "max_expansions": 50
+                            }
+                        }
+                    ],
+                    "filter": [
+                        {"term": {"user_id": "system"}}
+                    ]
+                }
+            },
+            "size": 20,
+            "sort": [
+                {"_score": {"order": "desc"}}
+            ],
+            "highlight": {
+                "fields": {
+                    "tags": {},
+                    "description": {}
+                }
+            }
+        }
+        
+        url = f"{host}/{index_name}/_search"
+        response = requests.get(url, auth=awsauth, json=query)
+        result = response.json()
+        
+        hits = result.get("hits", {}).get("hits", [])
+        total = result.get("hits", {}).get("total", {}).get("value", 0)
+        
+        documents = []
+        for hit in hits:
+            doc = hit["_source"].copy()
+            doc["_score"] = hit["_score"]
+            if "highlight" in hit:
+                doc["highlight"] = hit["highlight"]
+            documents.append(doc)
+        
+        return {
+            "status": "success",
+            "query": q,
+            "total_hits": total,
+            "returned_documents": len(documents),
+            "documents": documents
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
