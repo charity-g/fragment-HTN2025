@@ -7,16 +7,7 @@ region = 'us-east-1'
 service = 'es'
 host = 'https://search-fragment-opensearch-or6bk37m3wqja5rog4rtn3sog4.us-east-1.es.amazonaws.com'
 domain = 'fragment-opensearch'
-index_name = "tag_fragment_index"
-
-credentials = boto3.Session().get_credentials()
-awsauth = AWS4Auth(
-    credentials.access_key,
-    credentials.secret_key,
-    region,
-    service,
-    session_token=credentials.token
-)
+index_name = "tag_fragment_index" # TODO:; verify
 
 def ensure_index_exists():
     # Check if index exists, create if not
