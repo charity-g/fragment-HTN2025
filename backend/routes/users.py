@@ -250,7 +250,8 @@ async def get_user_collections(user_id: str):
                     "count": 1,
                     "gif_url": f"https://{GIF_BUCKET}.s3.amazonaws.com/{item.get('gif_link', '')}",
                     "title": tag,
-                    "privacy": item.get("privacy", "private")
+                    "privacy": item.get("privacy", "private"),
+                    "user_id": user_id
                 }
     return {"status": "success", "user_id": user_id, "collections": list(collections_set.values())}
 
