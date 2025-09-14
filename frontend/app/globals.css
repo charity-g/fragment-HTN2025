@@ -78,3 +78,16 @@ body {
   font-family: 'PPNeueMontreal', Arial, Helvetica, sans-serif;
   font-weight: 100;
 }
+
+@keyframes wave {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.group-hover\:animate-wave::before {
+  animation: wave 1.2s ease-in-out forwards;
+}

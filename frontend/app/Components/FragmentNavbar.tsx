@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
+
 export default function FragmentNavbar({ currrouter }: { currrouter: string }) {
   const router = useRouter();
   const focused = "text-sm text-white border-b-2 border-white pb-2 bg-transparent";
@@ -29,7 +30,6 @@ export default function FragmentNavbar({ currrouter }: { currrouter: string }) {
           {currrouter === "/following" ? "[FOLLOWING]" : "FOLLOWING"}
         </button>
       </nav>
-
       <div className="flex gap-3">
         {currrouter === "/fragments" && (
           <>

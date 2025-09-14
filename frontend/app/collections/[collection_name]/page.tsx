@@ -60,9 +60,14 @@ function CollectionContent({collectionName}: {collectionName: string | undefined
     }, [collectionName]);
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold">Collection: <h2 className="text-xl"> {collectionName} </h2></h1>
-            <MasonryGrid gifs={gifs} />
-        </div>
+    <div className="p-6 flex flex-col gap-4">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+    <h1 className="text-2xl font-bold">Collection:</h1>
+    <h2 className="text-xl font-medium text-gray-700">{collectionName}</h2>
+  </div>
+
+  <MasonryGrid gifs={gifs} />
+</div>
+
     );
 }

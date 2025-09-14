@@ -31,7 +31,7 @@ function LandingContent() {
             <div className={styles.btn}>Loading...</div>
           ) : user ? (
             <>
-              <span className={styles.btn}>Hello, {user.name}!</span>
+              <a href="/fragments" className={styles.btn} ><span>Hello, {user.name}!</span></a>
               <a className={styles.btn} href="/auth/logout">
                 Logout
               </a>

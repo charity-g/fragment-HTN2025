@@ -3,8 +3,13 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faCog, faGem } from "@fortawesome/free-solid-svg-icons";
 import { useSearch } from "../contexts/SearchContext";
+import Image from "next/image";
+import logo from "@/app/src/images/logo.svg";
+import { useRouter } from "next/navigation";
+
 
 export default function HeaderSection() {
+  const router = useRouter();
   const { query, setQuery, performSearch, isSearching } = useSearch();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -14,9 +19,12 @@ export default function HeaderSection() {
 
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-      <div className="flex items-center gap-2">
-        <FontAwesomeIcon icon={faGem} className="w-5 h-5" />
-        <span className="text-sm tracking-wider">FRAGMENTS</span>
+      <div
+        className="flex items-center gap-3 cursor-pointer"
+        onClick={() => router.push("/")}
+      >
+        <Image src={logo} alt="Logo" width={32} height={32} style={{ filter: "invert(1)" }} />
+        <span className="text-lg font-bold tracking-wider">FRAGMENTS</span>
       </div>
       <div className="flex-1 max-w-md mx-8">
         <form onSubmit={handleSearch} className="relative">
