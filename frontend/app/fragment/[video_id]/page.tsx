@@ -1,24 +1,24 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import logo from "@/app/src/images/logo.svg";
 
-export default async function FragmentPage({ params }: { params: { video_id: string } }) {
-  const { video_id } = params;
+export default function FragmentPage() {
   const router = useRouter();
+  const { video_id } = useParams<{ video_id: string }>();
+  const [gifData, setGifData] = useState<any>(null);
 
-  // Fetch video data
-  const res = await fetch(`http://localhost:8000/opensearch/video/${video_id}`, {
-    cache: "no-store",
-  });
+  useEffect(() => {
+    if (!video_id) return;
+    fetch(`http://localhost:8000/opensearch/video/${video_id}`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => setGifData(data.document._source))
+      .catch(console.error);
+  }, [video_id]);
 
-  if (!res.ok) {
-    return <p className="text-red-500">Error fetching video {video_id}</p>;
-  }
-
-  const data = await res.json();
-  const gifData = data.document._source;
+  if (!gifData) return <p className="text-gray-400">Loading…</p>;
 
   const abs_gif_link = "https://fragment-gifs.s3.amazonaws.com/" + gifData.gif_link;
 
@@ -54,13 +54,21 @@ export default async function FragmentPage({ params }: { params: { video_id: str
 
         {/* Right: Metadata Panel */}
         <aside className="w-[360px] bg-[#1e1e1e] rounded-2xl p-6 flex flex-col gap-6 shadow-xl">
-          {/* Top Bar */}
-          <div className="flex justify-between items-center text-sm">
+            {/* Top Bar */}
+            <div className="flex justify-between items-center text-sm">
             <span className="font-medium text-gray-300 truncate">
-              {gifData.user_id || "unknown"}
+                {gifData.user_id || "unknown"}
             </span>
-            <button className="text-gray-400 hover:text-gray-200">✕</button>
-          </div>
+            <button
+                onClick={() => router.push("/fragments")}
+                className="text-gray-400 hover:text-gray-200"
+            >
+                ✕
+            </button>
+            </div>
+
+
+            <a href={gifData.sourceURL} target="_blank">Source</a>
 
           {/* Collection */}
           <div>

@@ -20,4 +20,5 @@ def upload_file_to_s3(file_path: str, bucket: str, key: str, metadata=None):
                     CreateBucketConfiguration={"LocationConstraint": region}
                 )
     extra_args = {"Metadata": metadata} if metadata else {}
+    print(extra_args)uplo
     s3_client.upload_file(file_path, bucket, key, ExtraArgs=extra_args)
