@@ -13,7 +13,7 @@ import { useUser } from "@auth0/nextjs-auth0";
 export default function ForeignUserPage() {
   const { user } = useUser();  
     const params = useParams();
-    const user_id = params.user_id;
+    const user_id = params.userId;
 
     const [foreignUser, setForeignUser] = useState<UserResponse | null>(null);
     const [gifs, setGifs] = useState([]);
@@ -25,7 +25,7 @@ export default function ForeignUserPage() {
             setForeignUser(data);
         };
         const fetchGifs = async () => {
-            const res = await fetch(`http://localhost:8000/users/${user_ids}/gifs`, {
+            const res = await fetch(`http://localhost:8000/users/${user_id}/gifs`, {
                 cache: "no-store",
             });
             const data = await res.json();
@@ -47,7 +47,7 @@ export default function ForeignUserPage() {
         <div className="h-full bg-[#0D0D0D] text-white">
             <HeaderSection />
             <UserProfileSection is_self={false} name={foreignUser.name} username={foreignUser.username || user_id} />
-            <FragmentNavbar foreignuser_id={user_id} currrouter="/fragments" />
+            <FragmentNavbar foreignUserId={user_id} currrouter="/fragments" />
             <MasonryGrid gifs={gifs || []} />
         </div>
     );
