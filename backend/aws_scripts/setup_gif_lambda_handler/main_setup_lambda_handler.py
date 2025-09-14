@@ -4,83 +4,67 @@ import boto3
 from datetime import datetime
 import os
 import time
-from moviepy.editor import VideoFileClip  
-import imageio
+import subprocess
+import shlex
 
 s3 = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('fragments')
 aws_s3_bucket = 'fragment-gifs'
 
-def create_gif(input_s3_uri: str, video_id: str, width: int, height: int):
+def create_gif(input_s3_uri: str, temp_webm: str, video_id: str, width: int, height: int):
     gif_link = f'{video_id}_gif.gif'
-    temp_webm = f'/tmp/{video_id}.webm'
     temp_gif = f'/tmp/{gif_link}'
 
-    # Download input file from S3
-    bucket = input_s3_uri.replace("s3://", "").split("/")[0]
-    key = "/".join(input_s3_uri.replace("s3://", "").split("/")[1:])
-    s3.download_file(bucket, key, temp_webm)
+    # Parse bucket and key from input_s3_uri
+    s3_source_bucket = "fragment-webm"
+    s3_source_key = "/".join(input_s3_uri.replace("s3://", "").split("/")[1:])
+    SIGNED_URL_TIMEOUT = 3600
 
-    # Use imageio to convert webm to gif
+    # Generate presigned URL for source video
+    s3_source_signed_url = s3.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': s3_source_bucket, 'Key': s3_source_key},
+        ExpiresIn=SIGNED_URL_TIMEOUT
+    )
+
+    # Find ffmpeg binary path from Lambda layer
+    ffmpeg_bin = "/opt/bin/ffmpeg"
+    if not os.path.isfile(ffmpeg_bin):
+        ffmpeg_bin = "/opt/bin/ffmpeg.exe"
+    if not os.path.isfile(ffmpeg_bin):
+        raise FileNotFoundError("ffmpeg binary not found at /opt/bin/ffmpeg or /opt/bin/ffmpeg.exe")
+
+    # Run ffmpeg to convert to GIF
+    # Use local file instead of presigned URL for input
+    ffmpeg_cmd = f"{ffmpeg_bin} -y -i {temp_webm} -vf scale={width}:{height} {temp_gif}"
+    command1 = shlex.split(ffmpeg_cmd)
+
     try:
-        reader = imageio.get_reader(temp_webm)
-        frames = []
-        for frame in reader:
-            # Resize frame if needed
-            if frame.shape[1] != width or frame.shape[0] != height:
-                import cv2
-                frame = cv2.resize(frame, (width, height))
-            frames.append(frame)
-        # Save as GIF with infinite loop
-        imageio.mimsave(temp_gif, frames, format='GIF', loop=0)
-        reader.close()
+        p1 = subprocess.run(command1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(f"ffmpeg command: {ffmpeg_cmd}")
+        print(f"ffmpeg stderr: {p1.stderr.decode()}")
+        if p1.returncode != 0:
+            error_lines = [line for line in p1.stderr.decode().split('\n') if "Error" in line or "No such file" in line or "Invalid" in line or "Segmentation fault" in line]
+            print("ffmpeg error details:", "\n".join(error_lines))
+            raise Exception("ffmpeg conversion failed")
+        else:
+            print(f"ffmpeg output: {p1.stdout.decode()}")
     except Exception as e:
-        print(f"imageio conversion failed: {e}")
-        raise
+        print(f"ffmpeg conversion failed: {e}")
+        raise Exception("ffmpeg conversion failed") 
 
     # Upload to AWS S3 bucket
     s3.upload_file(temp_gif, aws_s3_bucket, gif_link)
+    print(f"Uploaded GIF to S3: s3://{aws_s3_bucket}/{gif_link}")
 
     # Clean up temp files
     try:
-        os.remove(temp_webm)
         os.remove(temp_gif)
     except Exception:
         pass
 
     return gif_link
-
-def check_job_status(job_id: str):
-    # Get MediaConvert endpoint
-    response = mediaconvert.describe_endpoints()
-    endpoint = response['Endpoints'][0]['Url']
-    
-    # Create MediaConvert client with endpoint
-    mc_client = boto3.client('mediaconvert', endpoint_url=endpoint)
-    
-    # Get job status
-    job = mc_client.get_job(Id=job_id)
-    return job['Job']['Status']  # 'SUBMITTED', 'PROGRESSING', 'COMPLETE', 'ERROR'
-
-def wait_for_job_completion(job_id: str, max_wait_seconds: int = 300):
-    """Wait for MediaConvert job to complete, with timeout"""
-    start_time = time.time()
-    
-    while time.time() - start_time < max_wait_seconds:
-        status = check_job_status(job_id)
-        print(f"Job {job_id} status: {status}")
-        
-        if status == 'COMPLETE':
-            return True
-        elif status == 'ERROR':
-            return False
-        
-        # Wait 10 seconds before checking again
-        time.sleep(10)
-    
-    print(f"Job {job_id} timed out after {max_wait_seconds} seconds")
-    return False
 
 def lambda_handler(event, context):
     print("=== LAMBDA TRIGGERED ===")
@@ -109,18 +93,14 @@ def lambda_handler(event, context):
 
 
         try:
-            job_id = create_gif(input_s3_uri, video_id, width=width, height=height)
+            print("Trying to create GIF for video", video_id)
+            job_id = create_gif(input_s3_uri, temp_webm, video_id, width=width, height=height)
             print(f"GIF Job created: {job_id} for video {video_id}")
 
-            if wait_for_job_completion(job_id, max_wait_seconds=300):
-                print("GIF conversion completed successfully!")
-            else:
-                print("GIF conversion failed or timed out")
-                gif_link = None
         except Exception as e:
             print(f"GIF Conversion job failed: {e}")
             gif_link = None
-
+    
         try:
             os.remove(temp_webm)
         except Exception:

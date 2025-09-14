@@ -1,4 +1,5 @@
 export type gifObject = {
+  video_id: string;
   gif_url: string;
   user_id: string;
   video_id: string;
