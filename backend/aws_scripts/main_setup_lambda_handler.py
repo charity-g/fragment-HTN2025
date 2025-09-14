@@ -10,7 +10,7 @@ dynamodb = boto3.resource('dynamodb')
 mediaconvert = boto3.client('mediaconvert')
 table = dynamodb.Table('fragments')
 
-def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str, width: int, height: int):
+def create_gif_with_mediaconvert(input_s3_uri: str, video_id: str, width: int, height: int):
     # Get MediaConvert endpoint
     response = mediaconvert.describe_endpoints()
     endpoint = response['Endpoints'][0]['Url']
@@ -31,7 +31,7 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str, width: i
                 'OutputGroupSettings': {
                     'Type': 'FILE_GROUP_SETTINGS',
                     'FileGroupSettings': {
-                        'Destination': output_s3_uri
+                        'Destination': f's3://fragment-gifs/{video_id}'
                     }
                 },
                 'Outputs': [{
@@ -112,14 +112,14 @@ def lambda_handler(event, context):
         
         # Convert to GIF using MediaConvert
         input_s3_uri = f's3://{bucket}/{key}'
-        output_s3_uri = f's3://fragment-gifs/{video_id}_gif.gif'
+        gif_link = f'{video_id}_gif.gif'
         
         # Get dynamic width and height from metadata if present, else use defaults
         width = int(response['Metadata'].get('width', 720))
         height = int(response['Metadata'].get('height', 480)) 
 
         try:
-            job_id = create_gif_with_mediaconvert(input_s3_uri, output_s3_uri, width=width, height=height)
+            job_id = create_gif_with_mediaconvert(input_s3_uri, video_id, width=width, height=height)
             print(f"MediaConvert job created: {job_id} for video {video_id}")
             
             # Wait for job completion (max 5 minutes)
