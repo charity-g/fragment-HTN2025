@@ -126,6 +126,7 @@ async def get_user_gifs(user_id: str, tags: list[str] = Query(None)):
                 ExpiresIn=10000
             )
             item['gif_url'] = presigned_url
+            item['s3_url'] = f"https://{bucket}.s3.amazonaws.com/{gif_name}"
             filtered_video_items.append(item)
         except Exception as e:
             print(f"Error generating presigned URL for {gif_name}: {e}")
@@ -180,6 +181,7 @@ async def get_user_collections(user_id: str):
         ExpressionAttributeValues={":uid": user_id}
     )
 
+    GIF_BUCKET = "fragment-gifs"
     collections_set = {}
     for item in response.get("Items", []):
         tags = item.get("tags", [])
@@ -189,10 +191,10 @@ async def get_user_collections(user_id: str):
             else:
                 collections_set[tag] = {
                     "count": 1,
-                    "gif_url": item.get("gif_link", ""),
+                    "gif_url": f"https://{GIF_BUCKET}.s3.amazonaws.com/{item.get('gif_link', '')}",
                     "title": tag,
                     "privacy": item.get("privacy", "private")
                 }
     return {"status": "success", "user_id": user_id, "collections": list(collections_set.values())}
 
-    
+
