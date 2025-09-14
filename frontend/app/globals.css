@@ -19,8 +19,62 @@
   }
 }
 
+@font-face {
+  font-family: "PPNeueMontreal";
+  src: url('/fonts/ppneuemontreal-medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PPNeueMontreal";
+  src: url('/fonts/ppneuemontreal-bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PPNeueMontreal";
+  src: url('/fonts/ppneuemontreal-book.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PPNeueMontreal";
+  src: url('/fonts/ppneuemontreal-thin.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PPNeueMontreal";
+  src: url('/fonts/ppneuemontreal-italic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PPNeueMontreal";
+  src: url('/fonts/ppneuemontreal-semibolditalic.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "PP Fragment";
+  font-family: 'PPNeueMontreal', Arial, Helvetica, sans-serif;
+}
+
+/* Example usage in CSS */
+.thin-text {
+  font-family: 'PPNeueMontreal', Arial, Helvetica, sans-serif;
+  font-weight: 100;
 }

@@ -10,7 +10,7 @@ dynamodb = boto3.resource('dynamodb')
 mediaconvert = boto3.client('mediaconvert')
 table = dynamodb.Table('fragments')
 
-def create_gif_with_mediaconvert(input_s3_uri: str, video_id: str, width: int, height: int, loop: bool = True):
+def create_gif_with_mediaconvert(input_s3_uri: str, video_id: str, width: int, height: int, framerate_numerator: int = 30, framerate_denominator: int = 1):
     # Get MediaConvert endpoint
     response = mediaconvert.describe_endpoints()
     endpoint = response['Endpoints'][0]['Url']
@@ -20,12 +20,11 @@ def create_gif_with_mediaconvert(input_s3_uri: str, video_id: str, width: int, h
     
     gif_settings = {
         'FramerateControl': 'INITIALIZE_FROM_SOURCE',
-        'FramerateConversionAlgorithm': 'DUPLICATE_DROP'
+        'FramerateConversionAlgorithm': 'DUPLICATE_DROP',
+        'FramerateNumerator': framerate_numerator,
+        'FramerateDenominator': framerate_denominator
     }
-    if loop:
-        # Loop GIF infinitely
-        gif_settings['LoopCount'] = 0  # 0 means infinite loop in MediaConvert
-
+    
     # Job settings for GIF conversion
     job_settings = {
         'Role': 'arn:aws:iam::348076083335:role/MediaConvertRole',

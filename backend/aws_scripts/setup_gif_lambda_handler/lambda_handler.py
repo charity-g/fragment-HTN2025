@@ -4,64 +4,48 @@ import boto3
 from datetime import datetime
 import os
 import time
+import subprocess
 
 s3 = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
-mediaconvert = boto3.client('mediaconvert')
 table = dynamodb.Table('fragments')
+aws_s3_bucket = 'fragment-gifs'
 
-def create_gif_with_mediaconvert(input_s3_uri: str, video_id: str, width: int, height: int, loop: bool = True):
-    # Get MediaConvert endpoint
-    response = mediaconvert.describe_endpoints()
-    endpoint = response['Endpoints'][0]['Url']
-    
-    # Create MediaConvert client with endpoint
-    mc_client = boto3.client('mediaconvert', endpoint_url=endpoint)
-    
-    gif_settings = {
-        'FramerateControl': 'INITIALIZE_FROM_SOURCE',
-        'FramerateConversionAlgorithm': 'DUPLICATE_DROP'
-    }
-    if loop:
-        # Loop GIF infinitely
-        gif_settings['LoopCount'] = 0  # 0 means infinite loop in MediaConvert
+def create_gif(input_s3_uri: str, video_id: str, width: int, height: int, framerate_numerator: int = 30, framerate_denominator: int = 1):
+    gif_link = f'{video_id}_gif.gif'
+    temp_webm = f'/tmp/{video_id}.webm'
+    temp_gif = f'/tmp/{gif_link}'
 
-    # Job settings for GIF conversion
-    job_settings = {
-        'Role': 'arn:aws:iam::348076083335:role/MediaConvertRole',
-        'Settings': {
-            'Inputs': [{
-                'FileInput': input_s3_uri,
-                'TimecodeSource': 'ZEROBASED'
-            }],
-            'OutputGroups': [{
-                'Name': 'File Group',
-                'OutputGroupSettings': {
-                    'Type': 'FILE_GROUP_SETTINGS',
-                    'FileGroupSettings': {
-                        'Destination': f's3://fragment-gifs/{video_id}'
-                    }
-                },
-                'Outputs': [{
-                    'NameModifier': '_gif',
-                    'ContainerSettings': {
-                        'Container': 'GIF'
-                    },
-                    'VideoDescription': {
-                        'CodecSettings': {
-                            'Codec': 'GIF',
-                            'GifSettings': gif_settings
-                        },
-                        'Width': width,
-                        'Height': height,
-                        'TimecodeInsertion': 'DISABLED'
-                    }
-                }]
-            }]
-        }
-    }
-    job = mc_client.create_job(**job_settings)
-    return job['Job']['Id']
+    # Download input file from S3
+    bucket = input_s3_uri.replace("s3://", "").split("/")[0]
+    key = "/".join(input_s3_uri.replace("s3://", "").split("/")[1:])
+    s3.download_file(bucket, key, temp_webm)
+
+    # Use ffmpeg to convert webm to gif
+    ffmpeg_cmd = [
+        "ffmpeg",
+        "-y",
+        "-i", temp_webm,
+        "-vf", f"fps={framerate_numerator},{width}x{height}",
+        temp_gif
+    ]
+    try:
+        subprocess.run(ffmpeg_cmd, check=True)
+    except Exception as e:
+        print(f"ffmpeg conversion failed: {e}")
+        raise
+
+    # Upload to AWS S3 bucket
+    s3.upload_file(temp_gif, aws_s3_bucket, gif_link)
+
+    # Clean up temp files
+    try:
+        os.remove(temp_webm)
+        os.remove(temp_gif)
+    except Exception:
+        pass
+
+    return gif_link
 
 def check_job_status(job_id: str):
     # Get MediaConvert endpoint
@@ -121,8 +105,8 @@ def lambda_handler(event, context):
 
 
         try:
-            job_id = create_gif_with_mediaconvert(input_s3_uri, video_id, width=width, height=height)
-            print(f"MediaConvert job created: {job_id} for video {video_id}")
+            job_id = create_gif(input_s3_uri, video_id, width=width, height=height)
+            print(f"GIF Job created: {job_id} for video {video_id}")
 
             if wait_for_job_completion(job_id, max_wait_seconds=300):
                 print("GIF conversion completed successfully!")
@@ -130,7 +114,7 @@ def lambda_handler(event, context):
                 print("GIF conversion failed or timed out")
                 gif_link = None
         except Exception as e:
-            print(f"MediaConvert job failed: {e}")
+            print(f"GIF Conversion job failed: {e}")
             gif_link = None
 
         try:

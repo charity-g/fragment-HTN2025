@@ -1,6 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch, faCog, faGem } from "@fortawesome/free-solid-svg-icons"
 
+// Import the client component
+import MasonryGrid from "../components/MasonryGrid";
+import type { gifObject } from "@/types/gifObject";
+
 // Next.js Server Component
 
 export default async function Page() {
@@ -11,12 +15,12 @@ export default async function Page() {
   console.log("Fetched GIFs:", gifs);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#0D0D0D] text-white">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
         <div className="flex items-center gap-2">
           <FontAwesomeIcon icon={faGem} className="w-5 h-5" />
-          <span className="text-sm font-medium tracking-wider">FRAGMENTS</span>
+          <span className="text-sm  tracking-wider">FRAGMENTS</span>
         </div>
 
         <div className="flex-1 max-w-md mx-8">
@@ -40,15 +44,19 @@ export default async function Page() {
         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-700 flex items-center justify-center">
           <img src="/diverse-user-avatars.png" alt="Avatar" className="w-full h-full object-cover" />
         </div>
-        <h1 className="text-2xl font-light">Welcome back, Charity</h1>
+        <h1
+          className="text-[2.5rem] leading-normal"
+        >
+          Welcome back, Charity
+        </h1>
       </div>
 
       {/* Navigation and Actions */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
         <nav className="flex gap-8">
-          <button className="text-sm font-medium text-white border-b-2 border-white pb-2 bg-transparent">[FRAGMENTS]</button>
-          <button className="text-sm font-medium text-gray-400 hover:text-white pb-2 bg-transparent">COLLECTIONS</button>
-          <button className="text-sm font-medium text-gray-400 hover:text-white pb-2 bg-transparent">FOLLOWING</button>
+          <button className="text-sm  text-white border-b-2 border-white pb-2 bg-transparent">[FRAGMENTS]</button>
+          <button className="text-sm  text-gray-400 hover:text-white pb-2 bg-transparent">COLLECTIONS</button>
+          <button className="text-sm  text-gray-400 hover:text-white pb-2 bg-transparent">FOLLOWING</button>
         </nav>
 
         <div className="flex gap-3">
@@ -62,39 +70,4 @@ export default async function Page() {
   )
 }
 
-// Accept gifs prop and render images
-function MasonryGrid({ gifs }: { gifs: gifObject[] }) {
-  return (
-    <div className="p-6">
-      <div className="flex gap-4 h-screen">
-        {[0, 1, 2, 3, 4].map(col => (
-          <div key={col} className="flex flex-col gap-4 flex-1">
-            {gifs.filter((_, i) => i % 5 === col).map(({gif_url}, idx) => (
-              <GifComponent key={idx} gifUrl={gif_url} />
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
-function GifComponent({ gifUrl }: { gifUrl: string }) {
-  return (<div className="bg-gray-800 rounded-lg flex items-center justify-center">
-        {gifUrl.endsWith('.gif') ? (
-          <video src={gifUrl} autoPlay loop muted playsInline style={{ width: "100%", height: "auto", objectFit: "cover" }} className="rounded" />
-        ) : (
-          <img src={gifUrl} style={{ width: "100%", height: "auto", objectFit: "cover" }} className="rounded" alt={'gif'} />
-        )}
-      </div>)
-}
-
-
-type gifObject = {
-  gif_url: string;
-  user_id: string;
-  title?: string;
-  description?: string;
-  created_at?: string;
-  tags?: string[];
-};
