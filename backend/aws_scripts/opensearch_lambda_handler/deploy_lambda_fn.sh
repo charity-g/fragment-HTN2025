@@ -1,5 +1,5 @@
 mkdir package
-pip install -r requirements.txt -t package/
+pip3 install -r requirements.txt -t package/
 cp opensearch_lambda_handler.py package/
 cd package
 zip -r ../lambda-opensearch.zip .
@@ -20,7 +20,7 @@ aws lambda create-function \
   --function-name syncDynamoToOpenSearch \
   --runtime python3.9 \
   --handler opensearch_lambda_handler.lambda_handler \
-  --role arn:aws:iam::348076083335:role/LambdaS3Role \
+  --role arn:aws:iam::348076083335:role/syncToOpenSearchRole \
   --zip-file fileb://lambda-opensearch.zip \
   --timeout 80 \
   --memory-size 256 \

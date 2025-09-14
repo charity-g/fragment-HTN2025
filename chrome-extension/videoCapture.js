@@ -227,6 +227,7 @@ function injectButtons() {
             <span style="cursor:pointer;font-size:18px;" id="closeBtn">✕</span>
           </div>
 
+
           <label style="font-size:12px;letter-spacing:1px;display:block;margin-bottom:6px;">TAG</label>
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
             <input id="tagInput" type="text" placeholder="Add tag" 
@@ -308,7 +309,7 @@ function injectButtons() {
             notes: form.querySelector("#recNotes").value,
             tags: tags.join(","),
             sourceURL: window.location.href,
-            user_id: "demo", // TODO. hardcoded
+            user_id: "system",
             privacy: isPrivate ? "private" : "public",
           };
           uploadToBackend(blob, metadata);
