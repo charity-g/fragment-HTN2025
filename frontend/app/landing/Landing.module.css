@@ -57,8 +57,8 @@
   filter: saturate(1.02) contrast(1.03);
 
   /* Smooth motion */
-  animation: gradient-orbs 26s ease-in-out infinite alternate,
-             hue-breathe 18s ease-in-out infinite alternate;
+  animation: gradient-orbs 8s ease-in-out infinite alternate,
+             hue-breathe 4s ease-in-out infinite alternate;
   will-change: background, filter, transform;
   transform: translateZ(0); /* kick to GPU */
 }
