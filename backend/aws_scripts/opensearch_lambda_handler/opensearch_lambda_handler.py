@@ -22,9 +22,28 @@ def ensure_index_exists():
     # Check if index exists, create if not
     url = f"{host}/{index_name}"
     response = requests.head(url, auth=awsauth)
-    if response.status_code == 404:
-        # Create index with default settings
-        create_resp = requests.put(url, auth=awsauth, headers={"Content-Type": "application/json"}, json={})
+    if response.status_code != 200:
+        # Create index with basic settings and mappings for tags as keyword array
+        index_settings = {
+            "settings": {
+                "number_of_shards": 1,
+                "number_of_replicas": 1
+            },
+            "mappings": {
+                "properties": {
+                    "user_id": {"type": "keyword"},
+                    "video_id": {"type": "keyword"},
+                    "title": {"type": "text"},
+                    "description": {"type": "text"},
+                    "tags": {"type": "keyword"},
+                    "created_at": {"type": "date", "format": "strict_date_optional_time||epoch_millis"},
+                    "editingInstructions": {"type": "text"},
+                    "videoSummary": {"type": "text"},
+                    "updated_at": {"type": "date", "format": "strict_date_optional_time||epoch_millis"}
+                }
+            }
+        }
+        create_resp = requests.put(url, auth=awsauth, headers={"Content-Type": "application/json"}, json=index_settings)
         print(f"Created index {index_name}: {create_resp.status_code} {create_resp.text}")
 
 def index_dynamo_item_to_opensearch(item):
@@ -64,6 +83,4 @@ def lambda_handler(event, context):
                     item[k] = v
             index_dynamo_item_to_opensearch(item)
 
-# - Check CloudWatch logs for errors (import errors, timeout, etc).
-# - Make sure your Lambda memory and timeout settings are sufficient.
 
