@@ -70,7 +70,6 @@ async def upload_video(
     tags: Optional[str] = Form(None),
     sourceURL: Optional[str] = Form(None),
     privacy: Optional[str] = Form(None),
-    collection: Optional[str] = Form(None),
     user_id: Optional[str] = Form(None)
 ):
     video_id = str(uuid.uuid4())
@@ -107,8 +106,6 @@ async def upload_video(
     if privacy:
         print(privacy)
         metadata["privacy"] = privacy
-    if collection:
-        metadata["collection"] = collection
 
     # Add width and height to metadata
     metadata["width"] = width
