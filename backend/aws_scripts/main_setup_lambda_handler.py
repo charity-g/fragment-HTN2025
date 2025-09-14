@@ -125,15 +125,14 @@ def lambda_handler(event, context):
             # Wait for job completion (max 5 minutes)
             if wait_for_job_completion(job_id, max_wait_seconds=300):
                 print(f"GIF conversion completed successfully!")
-                gif_link = output_s3_uri
             else:
                 print(f"GIF conversion failed or timed out")
-                gif_link = f'error'  # Placeholder
+                gif_link = None  # Placeholder
                 
         except Exception as e:
             print(f"MediaConvert job failed: {e}")
-            gif_link = f'error'  # Placeholder
-        
+            gif_link = None  # Placeholder
+
         # Clean up temp files
         try:
             os.remove(temp_webm)

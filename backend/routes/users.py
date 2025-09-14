@@ -117,7 +117,7 @@ async def get_user_gifs(user_id: str, tags: list[str] = Query(None)):
     video_items =  response.get("Items", [])
     filtered_video_items = []
     for item in video_items:
-        gif_name = item['video_id'] + ".gif_gif.gif"
+        gif_name = item['video_id'] + "_gif.gif"
         try:
             s3.head_object(Bucket=bucket, Key=gif_name)
             presigned_url = s3.generate_presigned_url(
