@@ -137,6 +137,7 @@ async def get_user_gifs(user_id: str, tags: list[str] = Query(None)):
 def get_user_gifs_by_tag(user_id: str, tags: list[str]):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('fragments')
+    GIF_BUCKET = "fragment-gifs"
     # Example: Scan for items where tags attribute contains any of the provided tags
     # Note: For production, use OpenSearch for more advanced queries
     response = table.scan(
@@ -148,6 +149,9 @@ def get_user_gifs_by_tag(user_id: str, tags: list[str]):
         }
     )
     gifs = response.get("Items", [])
+    # Add gif_url for each gif
+    for gif in gifs:
+        gif["gif_url"] = f"https://{GIF_BUCKET}.s3.amazonaws.com/{gif.get('gif_link', '')}"
     return {"status": "success", "user_id": user_id, "gifs": gifs}
 
 
