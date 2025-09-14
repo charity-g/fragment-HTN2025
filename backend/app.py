@@ -18,6 +18,7 @@ from routes import videos, users, opensearch
 from summarizeClips import processClip
 import json
 import subprocess
+import cv2
 
 app = FastAPI()
 
@@ -75,21 +76,14 @@ async def upload_video(
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    # Get width and height using ffprobe
+    # Get width and height using cv2
     try:
-        ffprobe_cmd = [
-            "ffprobe", "-v", "error",
-            "-select_streams", "v:0",
-            "-show_entries", "stream=width,height",
-            "-of", "json",
-            file_path
-        ]
-        result = subprocess.run(ffprobe_cmd, capture_output=True, text=True)
-        info = json.loads(result.stdout)
-        width = str(info["streams"][0]["width"])
-        height = str(info["streams"][0]["height"])
+        cap = cv2.VideoCapture(file_path)
+        width = str(int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)))
+        height = str(int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        cap.release()
     except Exception as e:
-        print(f"Could not extract video dimensions: {e}")
+        print(f"Could not extract video dimensions with cv2: {e}")
         width, height = "720", "480"
 
     metadata = {}
@@ -120,7 +114,7 @@ async def upload_video(
         if genAIData['videoSummary']:
             metadata["videoSummary"] = json.dumps(genAIData['videoSummary'])
         if genAIData['tags']:
-            metadata["initial_tags"] += json.dumps(genAIData['tags'])
+            metadata["initial_tags"] = ("," if metadata.get("initial_tags") else "").join(genAIData['tags'])
 
     s3_bucket = "fragment-webm"
     s3_key = f"uploads/{video_id}.webm"
@@ -149,6 +143,16 @@ if __name__ == "__main__":
         uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
     else:
         uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+# Using subprocess to call ffprobe (from ffmpeg) is the standard and efficient way to get width/height of a video file in Python.
+# ffprobe is lightweight, fast, and does not require loading the entire video into memory.
+# There is no significant difference in efficiency between using subprocess with ffprobe and using ffmpeg directly for just metadata extraction.
+# For metadata (width/height), ffprobe is preferred over ffmpeg because it's designed for probing, not transcoding.
+
+# Your current approach:
+# subprocess.run(["ffprobe", ...])
+# is efficient and recommended for this use case.
 
 
 # Using subprocess to call ffprobe (from ffmpeg) is the standard and efficient way to get width/height of a video file in Python.
