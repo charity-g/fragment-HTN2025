@@ -1,6 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch, faCog, faGem } from "@fortawesome/free-solid-svg-icons"
 
+// Import the client component
+import MasonryGrid from "../components/MasonryGrid";
+import type { gifObject } from "@/types/gifObject";
+
 // Next.js Server Component
 
 export default async function Page() {
@@ -66,39 +70,4 @@ export default async function Page() {
   )
 }
 
-// Accept gifs prop and render images
-function MasonryGrid({ gifs }: { gifs: gifObject[] }) {
-  return (
-    <div className="p-6">
-      <div className="flex gap-4 h-screen items-start">
-        {[0, 1, 2, 3, 4].map(col => (
-          <div key={col} className="flex flex-col gap-4 flex-1">
-            {gifs.filter((_, i) => i % 5 === col).map(({gif_url}, idx) => (
-              <GifComponent key={idx} gifUrl={gif_url} />
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
-function GifComponent({ gifUrl }: { gifUrl: string }) {
-  return (<div className="bg-gray-800 rounded-lg flex items-center justify-center">
-        {gifUrl.endsWith('.gif') ? (
-          <video src={gifUrl} autoPlay loop muted playsInline style={{ width: "100%", height: "auto", objectFit: "cover" }} className="rounded" />
-        ) : (
-          <img src={gifUrl} style={{ width: "100%", height: "auto", objectFit: "cover" }} className="rounded" alt={'gif'} />
-        )}
-      </div>)
-}
-
-
-type gifObject = {
-  gif_url: string;
-  user_id: string;
-  title?: string;
-  description?: string;
-  created_at?: string;
-  tags?: string[];
-};
