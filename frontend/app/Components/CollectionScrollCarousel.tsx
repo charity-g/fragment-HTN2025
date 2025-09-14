@@ -44,7 +44,7 @@ const CollectionScrollCarousel = ({ collections }: { collections: Collection[] }
             <div
               key={id}
               className="snap-start shrink-0 w-[220px]"
-              onClick={() => router.push(`/collections/${encodeURIComponent(collection.title)}`)}
+              onClick={() => router.push(`/collections/${collection.user_id}/${encodeURIComponent(collection.title)}`)}
             >
               <CollectionCard collection={collection} />
             </div>
