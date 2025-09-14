@@ -1,0 +1,103 @@
+:root { --pad: 24px; }
+
+.root {
+  position: relative;
+  min-height: 100svh;
+  color: #fff;
+}
+
+.landingBg {
+    background: radial-gradient(162.36% 91.04% at 26.25% 24.28%, rgba(0, 0, 0, 0.00) 0%, #E25113 100%), radial-gradient(120.25% 83.55% at 7.92% 17.06%, rgba(0, 0, 0, 0.00) 59.82%, #D8C3B9 100%), #0D0D0D;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+    width: 100%;
+    height: auto;
+}
+
+/* the background container is fixed so it doesn't scroll */
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;            /* sit behind everything */
+  pointer-events: none;   /* don't intercept clicks */
+}
+
+/* next/image with fill uses absolute inside .bg; make it cover */
+.bgImg {
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+  height: 100%;
+  transform: scale(1.02); /* avoid thin edges on some screens */
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: var(--pad);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+}
+
+.nav { display: flex; gap: .5rem; }
+
+.btn {
+  padding: .5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.10);
+  color: #fff;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+}
+.btnPrimary {
+  background: rgba(255,255,255,.95);
+  color: #111;
+  border-color: transparent;
+}
+
+.hero {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: 10vh var(--pad) 18vh; /* keep big headline away from edges */
+}
+
+.headline {
+  /* use your loaded font */
+  font-family: var(--font-display), serif;
+  font-size: clamp(40px, 9vw, 128px);
+  line-height: .92;
+  letter-spacing: .01em;
+  max-width: 12ch;
+}
+
+.caption {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  opacity: .9;
+  text-align: center;
+}
+
+.cta {
+  position: fixed;
+  right: 20px;
+  bottom: 16px;
+  background: rgba(255,255,255,.95);
+  color: #111;
+  padding: .7rem 1rem;
+  border-radius: 9999px;
+  text-decoration: none;
+}
