@@ -14,7 +14,7 @@ from config import settings
 from dependencies import PermissionsValidator, validate_token
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from s3_utils import upload_file_to_s3
-from routes import videos, users
+from routes import videos, users, opensearch
 from summarizeClips import processClip
 import json
 
@@ -113,8 +113,10 @@ async def upload_video(
         "user_id": user_id,
     }
 
+
 app.include_router(videos.router, prefix="/videos", tags=["videos"])
 app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(opensearch.router, prefix="/opensearch", tags=["opensearch"])
 
 if __name__ == "__main__":
     if len(sys.argv) >= 1 and sys.argv[0] == "dev":

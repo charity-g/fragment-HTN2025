@@ -166,3 +166,4 @@ async def get_user_tags(user_id: str):
             tag_set.add(tag)
 
     return {"status": "success", "user_id": user_id, "tags": list(tag_set)}
+
