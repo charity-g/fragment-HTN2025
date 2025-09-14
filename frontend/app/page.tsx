@@ -31,19 +31,21 @@ function LandingContent() {
             <div className={styles.btn}>Loading...</div>
           ) : user ? (
             <>
-              <a href="/fragments" className={styles.btn} ><span>Hello, {user.name}!</span></a>
+              <a href="/fragments" className={styles.btn}>
+                <span>Hello, {user.name}!</span>
+              </a>
               <a className={styles.btn} href="/auth/logout">
                 Logout
               </a>
             </>
           ) : (
             <>
-              <a className={styles.btn} href="/auth/login">
+              <a className={styles.btn} href="/auth/login?returnTo=/fragments">
                 Log in
               </a>
               <a
                 className={`${styles.btn} ${styles.btnPrimary}`}
-                href="/auth/login"
+                href="/auth/login?returnTo=/fragments"
               >
                 Sign up
               </a>
