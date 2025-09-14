@@ -448,6 +448,28 @@
   max-width: 60%;
 }
 
+/* Footer CTA Section */
+.footerSection {
+  background: #000;
+  padding: 8rem 2rem;
+  text-align: center;
+}
+
+.footerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footerTitle {
+  color: #fff;
+  font-family: "PP Fragment";
+  font-size: 48px;
+  font-style: italic;
+  font-weight: 400;
+  text-transform: uppercase;
+  margin: 0 0 3rem 0;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .contentContainer {
@@ -465,6 +487,10 @@
   }
 
   .sectionTitle {
+    font-size: 36px;
+  }
+
+  .footerTitle {
     font-size: 36px;
   }
 

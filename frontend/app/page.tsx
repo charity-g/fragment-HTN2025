@@ -100,12 +100,14 @@ function LandingContent() {
         <div className={styles.contentContainer}>
           <div className={styles.textColumn}>
             <h3 className={styles.sectionTitle}>
-              Stand on the Shoulder of Giants.
+              01. Stand on the Shoulder of Giants.
             </h3>
             <p className={styles.sectionText}>
-              Great work is connected. <br></br><br></br> Anything you ever make is produced by
-              drawing on everything you've ever consumed. <br></br><br></br> Being a better creator
-              begins with being a better consumer.
+              Great work is connected. <br></br>
+              <br></br> Anything you ever make is produced by drawing on
+              everything you've ever consumed. <br></br>
+              <br></br> Being a better creator begins with being a better
+              consumer.
             </p>
           </div>
           <div className={styles.imageColumn}>
@@ -129,11 +131,13 @@ function LandingContent() {
             />
           </div>
           <div className={styles.textColumn}>
-            <h3 className={styles.sectionTitle}>Curate Incrementally</h3>
+            <h3 className={styles.sectionTitle}>02. Curate Incrementally</h3>
             <p className={styles.sectionText}>
-              Blank Page Syndrome is universal across creative domains. <br></br><br></br> The
-              cure?<br></br> <br></br> To leave precise fragments of the best work you find across
-              the internet for your future self.
+              Blank Page Syndrome is universal across creative domains.{" "}
+              <br></br>
+              <br></br> The cure?<br></br> <br></br> To leave precise fragments
+              of the best work you find across the internet for your future
+              self.
             </p>
           </div>
         </div>
@@ -144,7 +148,7 @@ function LandingContent() {
         <div className={styles.contentContainer}>
           <div className={styles.textColumn}>
             <h3 className={styles.sectionTitle}>
-              A Video is Worth a Million Words
+              03. A Video is Worth a Million Words
             </h3>
             <p className={styles.sectionText}>
               Whether you're learning frontend development animations,
@@ -159,6 +163,16 @@ function LandingContent() {
               className={styles.sectionImage}
             />
           </div>
+        </div>
+      </section>
+
+      {/* Footer CTA Section */}
+      <section className={styles.footerSection}>
+        <div className={styles.footerContent}>
+          <h2 className={styles.footerTitle}>Ready to start fragmenting?</h2>
+          <a className={styles.cta} href="/">
+            Get browser extension
+          </a>
         </div>
       </section>
     </main>
