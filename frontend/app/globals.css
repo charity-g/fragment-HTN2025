@@ -68,7 +68,7 @@
 }
 
 body {
-  background: var(--background);
+  background: #0D0D0D;
   color: var(--foreground);
   font-family: 'PPNeueMontreal', Arial, Helvetica, sans-serif;
 }
