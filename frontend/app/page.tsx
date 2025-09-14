@@ -2,11 +2,15 @@
 
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearch } from "@/contexts/SearchContext";
+import SearchResultsGrid from "@/app/Components/SearchResultsGrid";
 import styles from "@/app/landing/Landing.module.css";
 import logo from "@/app/src/images/logo.svg";
 
-export default function Landing() {
+// Regular Landing Content
+function LandingContent() {
   const { user, isLoading } = useAuth();
+
   return (
     <main className={styles.landingBg} aria-hidden>
       {/* Top nav */}
@@ -69,5 +73,20 @@ export default function Landing() {
         </a>
       </div>
     </main>
+  );
+}
+
+export default function Landing() {
+  const { results, searchPerformed } = useSearch();
+
+  return (
+    <div className="bg-black min-h-screen text-white">
+      {/* Conditional rendering - search results OR regular landing content */}
+      {searchPerformed ? (
+        <SearchResultsGrid results={results} />
+      ) : (
+        <LandingContent />
+      )}
+    </div>
   );
 }
