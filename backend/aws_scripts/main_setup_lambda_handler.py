@@ -10,7 +10,7 @@ dynamodb = boto3.resource('dynamodb')
 mediaconvert = boto3.client('mediaconvert')
 table = dynamodb.Table('fragments')
 
-def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
+def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str, width: int, height: int):
     # Get MediaConvert endpoint
     response = mediaconvert.describe_endpoints()
     endpoint = response['Endpoints'][0]['Url']
@@ -47,8 +47,8 @@ def create_gif_with_mediaconvert(input_s3_uri: str, output_s3_uri: str):
                                 'FramerateConversionAlgorithm': 'DUPLICATE_DROP'
                             }
                         },
-                        'Width': 720,
-                        'Height': 480,
+                        'Width': width,
+                        'Height': height,
                         'TimecodeInsertion': 'DISABLED'
                     }
                 }]
@@ -115,23 +115,18 @@ def lambda_handler(event, context):
         input_s3_uri = f's3://{bucket}/{key}'
         output_s3_uri = f's3://fragment-gifs/{video_id}.gif'
         
+        # Get dynamic width and height from metadata if present, else use defaults
+        width = int(response['Metadata'].get('width', 720))
+        height = int(response['Metadata'].get('height', 480)) 
+
         try:
-            job_id = create_gif_with_mediaconvert(input_s3_uri, output_s3_uri)
+            job_id = create_gif_with_mediaconvert(input_s3_uri, output_s3_uri, width=width, height=height)
             print(f"MediaConvert job created: {job_id} for video {video_id}")
             
             # Wait for job completion (max 5 minutes)
             if wait_for_job_completion(job_id, max_wait_seconds=300):
                 print(f"GIF conversion completed successfully!")
-<<<<<<< HEAD
-                # Generate pre-signed URL (valid for 1 hour)
-                gif_link = s3.generate_presigned_url(
-                    'get_object',
-                    Params={'Bucket': 'fragment-gifs', 'Key': f'{video_id}.gif'},
-                    ExpiresIn=3600
-                )
-=======
                 gif_link = output_s3_uri
->>>>>>> main
             else:
                 print(f"GIF conversion failed or timed out")
                 gif_link = f'error'  # Placeholder
