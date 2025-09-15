@@ -309,7 +309,7 @@ function injectButtons() {
             notes: form.querySelector("#recNotes").value,
             tags: tags.join(","),
             sourceURL: window.location.href,
-            user_id: "system",
+            user_id: "demo-user-123",
             privacy: isPrivate ? "private" : "public",
           };
           uploadToBackend(blob, metadata);

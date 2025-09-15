@@ -9,7 +9,7 @@ const CollectionCard: React.FC<{ collection: Collection}> = ({ collection }) => 
   return (
     <div
       className="rounded-lg bg-transparent shadow-none overflow-hidden cursor-pointer"
-      onClick={() => router.replace(`/collections/${collection.user_id}/${encodeURIComponent(collection.title)}`)}
+      onClick={() => router.replace(`/collection/${collection.user_id}/${encodeURIComponent(collection.title)}`)}
     >
       <div className="aspect-square bg-transparent flex items-center justify-center">
         <img
