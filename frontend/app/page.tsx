@@ -106,7 +106,7 @@ function LandingContent() {
             <p className={styles.sectionText}>
               Great work is connected. <br></br>
               <br></br> Anything you ever make is produced by drawing on
-              everything you've ever consumed. <br></br>
+              everything you&apos;ve ever consumed. <br></br>
               <br></br> Being a better creator begins with being a better
               consumer.
             </p>
@@ -152,7 +152,7 @@ function LandingContent() {
               03. A Video is Worth a Million Words
             </h3>
             <p className={styles.sectionText}>
-              Whether you're learning frontend development animations,
+              Whether you&apos;re learning frontend development animations,
               post-production visual effects, hip-hop dance, or circus juggling
               — the magic of great work is best captured in video.
             </p>

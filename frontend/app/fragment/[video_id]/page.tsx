@@ -1,17 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import logo from "@/app/src/images/logo.svg";
+import { gifObject } from "@/types/gifObject";
 
 export default function FragmentPage() {
   const params = useParams();
   const video_id = params["video_id"];
   const router = useRouter();
-  const [gifData, setGifData] = useState<any>(null);
+  const [gifData, setGifData] = useState<gifObject | null>(null);
 
   useEffect(() => {
     if (!video_id) return;
