@@ -2,85 +2,111 @@
 
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
-import { useSearch } from "./contexts/SearchContext";
-import SearchResultsGrid from "@/app/Components/SearchResultsGrid";
 import styles from "@/app/landing/Landing.module.css";
 import logo from "@/app/src/images/logo.svg";
 import Link from "next/dist/client/link";
+import { useState } from "react";
 
 // Regular Landing Content
 function LandingContent() {
+  const productLive = false;
   const { user, isLoading } = useAuth();
+  const [email, setEmail] = useState("");
 
   return (
-    <main className={styles.landingBg} aria-hidden>
-      {/* Top nav */}
-      <header className={styles.header}>
-        <div className={styles.brand}>
-          <Image
-            src={logo}
-            alt="Fragments logo"
-            width={32}
-            height={32}
-            priority
-            style={{ filter: "brightness(0) invert(1)" }}
-          />
-          <Link className="navTitle" href="/fragments">FRAGMENTS</Link>
-        </div>
-        <nav className={styles.nav}>
-          {isLoading ? (
-            <div className={styles.btn}>Loading...</div>
-          ) : user ? (
-            <>
-              <Link href="/fragments" className={styles.btn}>
-                <span>Hello, {user.name}!</span>
-              </Link>
-              <Link className={styles.btn} href="/auth/logout">
-                Logout
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link className={styles.btn} href="/auth/login?returnTo=/fragments">
-                Log in
-              </Link>
-              <Link 
-                className={`${styles.btn} ${styles.btnPrimary}`}
-                href="/auth/login?returnTo=/fragments"
-              >
-                Sign up
-              </Link>
-            </>
-          )}
-        </nav>
-      </header>
+    <main>
+      <div className={styles.landingBg}>
+        {/* Top nav */}
+        <header className={styles.header}>
+          <div className={styles.brand}>
+            <Image
+              src={logo}
+              alt="Fragments logo"
+              width={32}
+              height={32}
+              priority
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
+            <Link className="navTitle" href="/fragments">FRAGMENTS</Link>
+          </div>
+          <nav className={styles.nav}>
+            {productLive && (isLoading ? (
+              <div className={styles.btn}>Loading...</div>
+            ) : user ? (
+              <>
+                <Link href="/fragments" className={styles.btn}>
+                  <span>Hello, {user.name}!</span>
+                </Link>
+                <Link className={styles.btn} href="/auth/logout">
+                  Logout
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link className={styles.btn} href="/auth/login?returnTo=/fragments">
+                  Log in
+                </Link>
+                <Link 
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  href="/auth/login?returnTo=/fragments"
+                >
+                  Sign up
+                </Link>
+              </>
+            ))}
+          </nav>  
+        </header>
 
-      {/* Giant headline */}
-      <section className={styles.hero}>
-        <h1 className={styles.headline}>
-          YOUR
-          <br />
-          SECOND BRAIN
-          <br />
-          FOR VIDEOS.
-        </h1>
-        <p className={styles.subtitle}>Clip anything, anywhere.</p>
-        <div className={styles.buttonGroup}>
-          <Link className={styles.cta} href="#demo">
-            See how it works
-          </Link>
-          <Link className={styles.ctaSecondary} href="/">
-            Get browser extension
-          </Link>
-        </div>
-      </section>
+        {/* Giant headline */}
+        <section
+          id="waitlist-form"
+          className={styles.hero}>
+          <h1 className={styles.headline}>
+            YOUR
+            <br />
+            SECOND BRAIN
+            <br />
+            FOR VIDEOS.
+          </h1>
+          <p className={styles.subtitle}>Clip anything, anywhere.</p>
+      
+            {productLive && ( <div className={styles.buttonGroup}><Link className={styles.cta} href="#demo">
+              See how it works
+            </Link>
+            <Link className={styles.ctaSecondary} href="/">
+              Get browser extension
+            </Link></div>) }
+            
+        </section>
+         {!productLive && (
+                <form
+                  className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 pb-20`}
+                  onSubmit={() => 'TODO'}
+                >
+                  <input
+                    className={styles.ctaSecondary}
+                    placeholder="Enter your email"
+                    type="text"
+                    style={{ pointerEvents: "auto" }}
+                    tabIndex={0}
+                    autoComplete="email"
+                    name="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                  />
+                  <button type='submit' className={styles.cta}>
+                    Join the waitlist
+                  </button>
+                </form>
+            )}
+      </div>
 
       {/* Demo Section */}
       <section id="demo" className={styles.demoSection}>
         <div className={styles.demoContent}>
           <h2 className={styles.demoTitle}>How it works</h2>
           <div className={styles.gifContainer}>
-            <Image
+            <img
               src="/demo/Ewan Jones Morris - Flash Cut.gif"
               alt="Demo of Fragments in action"
               className={styles.demoGif}
@@ -112,7 +138,7 @@ function LandingContent() {
             </p>
           </div>
           <div className={styles.imageColumn}>
-            <Image
+            <img
               src="/Network_Community_Structure.svg"
               alt="Network community structure"
               className={styles.sectionImage}
@@ -123,9 +149,9 @@ function LandingContent() {
 
       {/* Section 2: Curate Incrementally */}
       <section className={styles.contentSection}>
-        <div className={styles.contentContainer}>
+        <div className={`${styles.contentContainer} ${styles.reverseOnMobile}`}>
           <div className={styles.imageColumn}>
-            <Image
+            <img
               src="/logos.png"
               alt="Platform logos"
               className={`${styles.sectionImage} ${styles.smallImage}`}
@@ -158,7 +184,7 @@ function LandingContent() {
             </p>
           </div>
           <div className={styles.imageColumn}>
-            <Image
+            <img
               src="/demo/Ewan Jones Morris - Flash Cut.gif"
               alt="Video demonstration"
               className={styles.sectionImage}
@@ -171,9 +197,14 @@ function LandingContent() {
       <section className={styles.footerSection}>
         <div className={styles.footerContent}>
           <h2 className={styles.footerTitle}>Ready to start fragmenting?</h2>
-          <Link className={styles.cta} href="/">
+          {productLive ? <Link className={styles.cta} href="/">
             Get browser extension
-          </Link>
+          </ Link> :
+          <Link className={styles.cta} href="#waitlist-form">
+            Join the waitlist
+          </ Link>
+          
+        }
         </div>
       </section>
     </main>
