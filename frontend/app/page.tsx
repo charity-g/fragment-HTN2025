@@ -54,19 +54,13 @@ function LandingContent() {
                 </Link>
               </>
             ))}
-            {!productLive && (
-                <Link 
-                  className={`${styles.btn} `}
-                  href="TODO"
-                >
-                  Sign up
-                </Link>
-            )}
           </nav>  
         </header>
 
         {/* Giant headline */}
-        <section className={styles.hero}>
+        <section
+          id="waitlist-form"
+          className={styles.hero}>
           <h1 className={styles.headline}>
             YOUR
             <br />
@@ -85,22 +79,25 @@ function LandingContent() {
             
         </section>
          {!productLive && (
-            <form className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 pb-20`} onSubmit={() => 'TODO'}>
-              <input
-                className={styles.ctaSecondary}
-                placeholder="Enter your email"
-                type="text"
-                style={{ pointerEvents: "auto" }}
-                tabIndex={0}
-                autoComplete="email"
-                name="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-              />
-              <button type='submit' className={styles.cta}>
-                Join the waitlist
-              </button>
-            </form>
+                <form
+                  className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 pb-20`}
+                  onSubmit={() => 'TODO'}
+                >
+                  <input
+                    className={styles.ctaSecondary}
+                    placeholder="Enter your email"
+                    type="text"
+                    style={{ pointerEvents: "auto" }}
+                    tabIndex={0}
+                    autoComplete="email"
+                    name="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                  />
+                  <button type='submit' className={styles.cta}>
+                    Join the waitlist
+                  </button>
+                </form>
             )}
       </div>
 
@@ -203,7 +200,7 @@ function LandingContent() {
           {productLive ? <Link className={styles.cta} href="/">
             Get browser extension
           </ Link> :
-          <Link className={styles.cta} href="TODO">
+          <Link className={styles.cta} href="#waitlist-form">
             Join the waitlist
           </ Link>
           
