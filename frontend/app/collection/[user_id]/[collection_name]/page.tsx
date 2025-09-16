@@ -44,14 +44,18 @@ function CollectionContent({userId, collectionName}: {userId: string, collection
         }
         const fetchGifs = async () => {
             const url = `http://localhost:8000/users/${userId}/gifs?tags=${encodeURIComponent(collectionName)}`;
-            const res = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            });
-            const data = await res.json();
-            setGifs(data.gifs || []);
+            try {
+                const res = await fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                });
+                const data = await res.json();
+                setGifs(data.gifs || []);
+            } catch {
+                setGifs([]);
+            }
         };
         fetchGifs();
     }, [userId, collectionName]);

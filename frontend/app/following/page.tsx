@@ -8,13 +8,18 @@ type userToFollowObject = {
 };
 
 export default async function Page() {
-  const res = await fetch("http://localhost:8000/opensearch/non-matching-user?user_id=system", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  const data = await res.json();
+  let data;
+  try {
+    const res = await fetch("http://localhost:8000/opensearch/non-matching-user?user_id=system", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    data = await res.json();
+  } catch {
+    data = { documents: [] };
+  }
   const videos = data.documents.map((doc: userToFollowObject) => ({
     title: doc.tags[0] || "Untitled",
     gif_url: `https://fragment-gifs.s3.amazonaws.com/${encodeURIComponent(doc.gif_link || "")}`,
