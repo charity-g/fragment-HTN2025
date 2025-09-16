@@ -71,7 +71,7 @@ export default function Collections() {
     <div className="h-full bg-[#0D0D0D] text-white">
       <HeaderSection />
       <UserProfileSection is_self={false} />
-      <FragmentNavbar foreignUserId={userId} currrouter="/collections" />
+      <FragmentNavbar foreignUserId={typeof userId === "string" ? userId : userId[0]} currrouter="/collections" />
 
       {/* Conditional rendering - search results OR regular collections content */}
       {searchPerformed ? (
