@@ -2,78 +2,87 @@
 
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
-import { useSearch } from "./contexts/SearchContext";
-import SearchResultsGrid from "@/app/Components/SearchResultsGrid";
 import styles from "@/app/landing/Landing.module.css";
 import logo from "@/app/src/images/logo.svg";
 import Link from "next/dist/client/link";
 
 // Regular Landing Content
 function LandingContent() {
+  const productLive = false;
   const { user, isLoading } = useAuth();
 
   return (
-    <main className={styles.landingBg} aria-hidden>
-      {/* Top nav */}
-      <header className={styles.header}>
-        <div className={styles.brand}>
-          <Image
-            src={logo}
-            alt="Fragments logo"
-            width={32}
-            height={32}
-            priority
-            style={{ filter: "brightness(0) invert(1)" }}
-          />
-          <Link className="navTitle" href="/fragments">FRAGMENTS</Link>
-        </div>
-        <nav className={styles.nav}>
-          {isLoading ? (
-            <div className={styles.btn}>Loading...</div>
-          ) : user ? (
-            <>
-              <Link href="/fragments" className={styles.btn}>
-                <span>Hello, {user.name}!</span>
-              </Link>
-              <Link className={styles.btn} href="/auth/logout">
-                Logout
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link className={styles.btn} href="/auth/login?returnTo=/fragments">
-                Log in
-              </Link>
-              <Link 
-                className={`${styles.btn} ${styles.btnPrimary}`}
-                href="/auth/login?returnTo=/fragments"
-              >
-                Sign up
-              </Link>
-            </>
-          )}
-        </nav>
-      </header>
+    <main>
+      <div className={styles.landingBg}>
+        {/* Top nav */}
+        <header className={styles.header}>
+          <div className={styles.brand}>
+            <Image
+              src={logo}
+              alt="Fragments logo"
+              width={32}
+              height={32}
+              priority
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
+            <Link className="navTitle" href="/fragments">FRAGMENTS</Link>
+          </div>
+          <nav className={styles.nav}>
+            {productLive && (isLoading ? (
+              <div className={styles.btn}>Loading...</div>
+            ) : user ? (
+              <>
+                <Link href="/fragments" className={styles.btn}>
+                  <span>Hello, {user.name}!</span>
+                </Link>
+                <Link className={styles.btn} href="/auth/logout">
+                  Logout
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link className={styles.btn} href="/auth/login?returnTo=/fragments">
+                  Log in
+                </Link>
+                <Link 
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  href="/auth/login?returnTo=/fragments"
+                >
+                  Sign up
+                </Link>
+              </>
+            ))}
+            {!productLive && (
+                <Link 
+                  className={`${styles.btn} `}
+                  href="TODO"
+                >
+                  Sign up
+                </Link>
+            )}
+          </nav>
+        </header>
 
-      {/* Giant headline */}
-      <section className={styles.hero}>
-        <h1 className={styles.headline}>
-          YOUR
-          <br />
-          SECOND BRAIN
-          <br />
-          FOR VIDEOS.
-        </h1>
-        <p className={styles.subtitle}>Clip anything, anywhere.</p>
-        <div className={styles.buttonGroup}>
-          <Link className={styles.cta} href="#demo">
-            See how it works
-          </Link>
-          <Link className={styles.ctaSecondary} href="/">
-            Get browser extension
-          </Link>
-        </div>
-      </section>
+        {/* Giant headline */}
+        <section className={styles.hero}>
+          <h1 className={styles.headline}>
+            YOUR
+            <br />
+            SECOND BRAIN
+            <br />
+            FOR VIDEOS.
+          </h1>
+          <p className={styles.subtitle}>Clip anything, anywhere.</p>
+          <div className={styles.buttonGroup}>
+            <Link className={styles.cta} href="#demo">
+              See how it works
+            </Link>
+            <Link className={styles.ctaSecondary} href="/">
+              Get browser extension
+            </Link>
+          </div>
+        </section>
+      </div>
 
       {/* Demo Section */}
       <section id="demo" className={styles.demoSection}>
@@ -123,7 +132,7 @@ function LandingContent() {
 
       {/* Section 2: Curate Incrementally */}
       <section className={styles.contentSection}>
-        <div className={styles.contentContainer}>
+        <div className={`${styles.contentContainer} ${styles.reverseOnMobile}`}>
           <div className={styles.imageColumn}>
             <img
               src="/logos.png"

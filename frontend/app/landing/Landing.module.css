@@ -62,11 +62,11 @@
 }
 
 .landingBg {
-  position: absolute; /* fixed background */
+  position: relative;
   inset: 0;
   z-index: -1;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: auto;
 
   /* initial values (match your original) */
   --g1x: 26.25%;
@@ -478,23 +478,49 @@
     text-align: center;
   }
 
-  .manifestoTitle {
-    font-size: 60px;
+  .headline {
+    font-size: 48px;
+    line-height: 1.1;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    line-height: 1.3;
   }
 
   .demoTitle {
-    font-size: 60px;
+    font-size: 32px;
+    line-height: 1.1;
+  }
+
+  .manifestoTitle {
+    font-size: 32px;
+    line-height: 1.1;
   }
 
   .sectionTitle {
-    font-size: 36px;
+    font-size: 24px;
+    line-height: 1.1;
   }
 
   .footerTitle {
-    font-size: 36px;
+    font-size: 24px;
+    line-height: 1.1;
   }
 
   .sectionText {
     font-size: 16px;
+  }
+}
+
+.reverseOnMobile {
+  /* No effect on desktop */
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .reverseOnMobile {
+    display: flex !important;
+    flex-direction: column-reverse !important;
   }
 }
