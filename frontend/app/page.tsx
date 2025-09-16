@@ -80,7 +80,7 @@ function LandingContent() {
         <div className={styles.demoContent}>
           <h2 className={styles.demoTitle}>How it works</h2>
           <div className={styles.gifContainer}>
-            <Image
+            <img
               src="/demo/Ewan Jones Morris - Flash Cut.gif"
               alt="Demo of Fragments in action"
               className={styles.demoGif}
@@ -112,7 +112,7 @@ function LandingContent() {
             </p>
           </div>
           <div className={styles.imageColumn}>
-            <Image
+            <img
               src="/Network_Community_Structure.svg"
               alt="Network community structure"
               className={styles.sectionImage}
@@ -125,7 +125,7 @@ function LandingContent() {
       <section className={styles.contentSection}>
         <div className={styles.contentContainer}>
           <div className={styles.imageColumn}>
-            <Image
+            <img
               src="/logos.png"
               alt="Platform logos"
               className={`${styles.sectionImage} ${styles.smallImage}`}
@@ -158,7 +158,7 @@ function LandingContent() {
             </p>
           </div>
           <div className={styles.imageColumn}>
-            <Image
+            <img
               src="/demo/Ewan Jones Morris - Flash Cut.gif"
               alt="Video demonstration"
               className={styles.sectionImage}
