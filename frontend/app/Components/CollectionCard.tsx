@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import React from 'react';
 import { useRouter } from "next/navigation";
 import Collection from '@/types/Collection';
@@ -12,7 +12,7 @@ const CollectionCard: React.FC<{ collection: Collection}> = ({ collection }) => 
       onClick={() => router.replace(`/collection/${collection.user_id}/${encodeURIComponent(collection.title)}`)}
     >
       <div className="aspect-square bg-transparent flex items-center justify-center">
-        <img
+        <Image
           src={collection.gif_url}
           alt={collection.title}
           className="w-full h-full object-cover rounded-lg"

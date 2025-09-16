@@ -46,8 +46,8 @@ export default function ForeignUserPage() {
     return (
         <div className="h-full bg-[#0D0D0D] text-white">
             <HeaderSection />
-            <UserProfileSection is_self={false} name={foreignUser.name} username={foreignUser.username || user_id} />
-            <FragmentNavbar foreignUserId={user_id} currrouter="/fragments" />
+            <UserProfileSection is_self={false} name={foreignUser.name} username={foreignUser.username || (typeof user_id === "string" ? user_id : user_id[0])} />
+            <FragmentNavbar foreignUserId={typeof user_id === "string" ? user_id : user_id[0]} currrouter="/fragments" />
             <MasonryGrid gifs={gifs || []} />
         </div>
     );

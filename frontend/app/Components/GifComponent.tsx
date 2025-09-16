@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useEffect } from "react";
 import type { gifObject } from "@/types/gifObject";
 
@@ -24,7 +25,7 @@ export default function GifComponent({ gif }: { gif: gifObject }) {
   return (
     <div className="bg-gray-800 rounded-lg flex items-center justify-center">
       {gif.gif_url && (
-        <img
+        <Image
           src={gif.gif_url}
           style={{ width: "100%", height: "auto", objectFit: "cover" }}
           className="rounded"

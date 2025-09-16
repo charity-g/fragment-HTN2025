@@ -66,12 +66,12 @@ function LandingContent() {
         </h1>
         <p className={styles.subtitle}>Clip anything, anywhere.</p>
         <div className={styles.buttonGroup}>
-          <a className={styles.cta} href="#demo">
+          <Link className={styles.cta} href="#demo">
             See how it works
-          </a>
-          <a className={styles.ctaSecondary} href="/">
+          </Link>
+          <Link className={styles.ctaSecondary} href="/">
             Get browser extension
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -80,7 +80,7 @@ function LandingContent() {
         <div className={styles.demoContent}>
           <h2 className={styles.demoTitle}>How it works</h2>
           <div className={styles.gifContainer}>
-            <img
+            <Image
               src="/demo/Ewan Jones Morris - Flash Cut.gif"
               alt="Demo of Fragments in action"
               className={styles.demoGif}
@@ -106,13 +106,13 @@ function LandingContent() {
             <p className={styles.sectionText}>
               Great work is connected. <br></br>
               <br></br> Anything you ever make is produced by drawing on
-              everything you've ever consumed. <br></br>
+              everything you&apos;ve ever consumed. <br></br>
               <br></br> Being a better creator begins with being a better
               consumer.
             </p>
           </div>
           <div className={styles.imageColumn}>
-            <img
+            <Image
               src="/Network_Community_Structure.svg"
               alt="Network community structure"
               className={styles.sectionImage}
@@ -125,7 +125,7 @@ function LandingContent() {
       <section className={styles.contentSection}>
         <div className={styles.contentContainer}>
           <div className={styles.imageColumn}>
-            <img
+            <Image
               src="/logos.png"
               alt="Platform logos"
               className={`${styles.sectionImage} ${styles.smallImage}`}
@@ -152,13 +152,13 @@ function LandingContent() {
               03. A Video is Worth a Million Words
             </h3>
             <p className={styles.sectionText}>
-              Whether you're learning frontend development animations,
+              Whether you&apos;re learning frontend development animations,
               post-production visual effects, hip-hop dance, or circus juggling
               — the magic of great work is best captured in video.
             </p>
           </div>
           <div className={styles.imageColumn}>
-            <img
+            <Image
               src="/demo/Ewan Jones Morris - Flash Cut.gif"
               alt="Video demonstration"
               className={styles.sectionImage}
@@ -171,9 +171,9 @@ function LandingContent() {
       <section className={styles.footerSection}>
         <div className={styles.footerContent}>
           <h2 className={styles.footerTitle}>Ready to start fragmenting?</h2>
-          <a className={styles.cta} href="/">
+          <Link className={styles.cta} href="/">
             Get browser extension
-          </a>
+          </Link>
         </div>
       </section>
     </main>

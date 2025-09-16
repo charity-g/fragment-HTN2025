@@ -12,4 +12,8 @@ export type gifObject = {
   updated_at?: string;
   videoSummary?: string;
   webm_link?: string;
+  sourceURL?: string;
+  description?: string;
+  privacy?: string;
+  collection?: string;
 };

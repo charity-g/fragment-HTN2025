@@ -1,12 +1,9 @@
 "use client";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch, faCog, faGem } from "@fortawesome/free-solid-svg-icons";
 import { useSearch } from "../contexts/SearchContext";
 import SearchResultsGrid from "../Components/SearchResultsGrid";
-import { Fragment, useEffect, useState } from "react";
 import UserProfileSection from "../Components/UserProfileSection";
-
+import { useEffect, useState } from "react";
 import FragmentNavbar from "../Components/FragmentNavbar";
 import HeaderSection from "../Components/HeaderSection";
 import MasonryGrid from "../Components/MasonryGrid";

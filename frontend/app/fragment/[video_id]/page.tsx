@@ -1,17 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import logo from "@/app/src/images/logo.svg";
+import { gifObject } from "@/types/gifObject";
 
 export default function FragmentPage() {
   const params = useParams();
   const video_id = params["video_id"];
   const router = useRouter();
-  const [gifData, setGifData] = useState<any>(null);
+  const [gifData, setGifData] = useState<gifObject | null>(null);
 
   useEffect(() => {
     if (!video_id) return;
@@ -48,7 +48,7 @@ export default function FragmentPage() {
       <div className="flex gap-8 w-full max-w-7xl mx-auto p-6">
         {/* Left: Video/GIF */}
         <div className="flex-1 bg-black rounded-xl overflow-hidden shadow-xl flex items-center justify-center">
-          <img
+          <Image
             src={abs_gif_link}
             alt="fragment gif"
             className="w-full h-[70vh] object-contain"
