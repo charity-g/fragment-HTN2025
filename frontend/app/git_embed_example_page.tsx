@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -6,7 +8,7 @@ export default function Home() {
           Fragment GIF Display
         </h1>
         <div className="flex justify-center">
-          <img
+          <Image
             src="https://fragment-gifs.s3.us-east-1.amazonaws.com/test-lambda-s3-wiring_gif.gif"
             alt="Converted GIF from S3"
             className="max-w-full h-auto rounded-lg shadow-lg"

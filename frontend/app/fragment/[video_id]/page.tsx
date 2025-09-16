@@ -48,7 +48,7 @@ export default function FragmentPage() {
       <div className="flex gap-8 w-full max-w-7xl mx-auto p-6">
         {/* Left: Video/GIF */}
         <div className="flex-1 bg-black rounded-xl overflow-hidden shadow-xl flex items-center justify-center">
-          <img
+          <Image
             src={abs_gif_link}
             alt="fragment gif"
             className="w-full h-[70vh] object-contain"

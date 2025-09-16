@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 interface SearchResult {
   video_id: string;
   tags: string[];
@@ -53,7 +55,7 @@ export default function SearchResultsGrid({ results }: SearchResultsGridProps) {
                 className="bg-gray-900 rounded-lg overflow-hidden hover:bg-gray-800 transition-colors"
               >
                 <div className="aspect-video bg-gray-800 flex items-center justify-center">
-                  <img
+                  <Image
                     src={imageUrl}
                     alt="Fragment preview"
                     className="w-full h-full object-cover"
