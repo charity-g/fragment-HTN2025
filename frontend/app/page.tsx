@@ -5,11 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 import styles from "@/app/landing/Landing.module.css";
 import logo from "@/app/src/images/logo.svg";
 import Link from "next/dist/client/link";
+import { useState } from "react";
 
 // Regular Landing Content
 function LandingContent() {
   const productLive = false;
   const { user, isLoading } = useAuth();
+  const [email, setEmail] = useState("");
 
   return (
     <main>
@@ -60,7 +62,7 @@ function LandingContent() {
                   Sign up
                 </Link>
             )}
-          </nav>
+          </nav>  
         </header>
 
         {/* Giant headline */}
@@ -73,15 +75,33 @@ function LandingContent() {
             FOR VIDEOS.
           </h1>
           <p className={styles.subtitle}>Clip anything, anywhere.</p>
-          <div className={styles.buttonGroup}>
-            <Link className={styles.cta} href="#demo">
+      
+            {productLive && ( <div className={styles.buttonGroup}><Link className={styles.cta} href="#demo">
               See how it works
             </Link>
             <Link className={styles.ctaSecondary} href="/">
               Get browser extension
-            </Link>
-          </div>
+            </Link></div>) }
+            
         </section>
+         {!productLive && (
+            <form className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 pb-20`} onSubmit={() => 'TODO'}>
+              <input
+                className={styles.ctaSecondary}
+                placeholder="Enter your email"
+                type="text"
+                style={{ pointerEvents: "auto" }}
+                tabIndex={0}
+                autoComplete="email"
+                name="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+              />
+              <button type='submit' className={styles.cta}>
+                Join the waitlist
+              </button>
+            </form>
+            )}
       </div>
 
       {/* Demo Section */}
@@ -180,9 +200,14 @@ function LandingContent() {
       <section className={styles.footerSection}>
         <div className={styles.footerContent}>
           <h2 className={styles.footerTitle}>Ready to start fragmenting?</h2>
-          <Link className={styles.cta} href="/">
+          {productLive ? <Link className={styles.cta} href="/">
             Get browser extension
-          </Link>
+          </ Link> :
+          <Link className={styles.cta} href="TODO">
+            Join the waitlist
+          </ Link>
+          
+        }
         </div>
       </section>
     </main>
