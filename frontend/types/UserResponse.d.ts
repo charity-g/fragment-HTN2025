@@ -6,7 +6,7 @@ type UserResponse = {
     picture: string | null
     username: string | null
     created_at: string
-    updated_at: string
+    updated_at: string,
 }
 
 export default UserResponse;

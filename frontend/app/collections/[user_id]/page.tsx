@@ -44,16 +44,24 @@ export default function Collections() {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const res = await fetch(`http://localhost:8000/users/${userId}`);
-            const data = await res.json();
-            setForeignUser(data);
+            try {
+                const res = await fetch(`http://localhost:8000/users/${userId}`);
+                const data = await res.json();
+                setForeignUser(data);
+            } catch {
+              redirect("/collections");
+            }
         };
         const fetchCollections = async () => {
-            const res = await fetch(`http://localhost:8000/users/${userId}/collections`, {
-                cache: "no-store",
-            });
-            const data = await res.json();
-            setCollections(data.collections || []);
+            try {
+                const res = await fetch(`http://localhost:8000/users/${userId}/collections`, {
+                    cache: "no-store",
+                });
+                const data = await res.json();
+                setCollections(data.collections || []);
+            } catch {
+                setCollections([]);
+            }
         }
         fetchUser();
         fetchCollections();

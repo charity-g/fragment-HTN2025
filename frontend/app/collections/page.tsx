@@ -39,15 +39,19 @@ export default function Collections() {
     const fetchCollections = async () => {
       const user_id = 'system';
       const tagsEndpoint = `/users/${user_id}/collections`;
-      const res = await fetch(`http://localhost:8000${tagsEndpoint}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store"
-      });
-      const data = await res.json();
-      if (isMounted) setCollections(data.collections || []);
+      try {
+        const res = await fetch(`http://localhost:8000${tagsEndpoint}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store"
+        });
+        const data = await res.json();
+        if (isMounted) setCollections(data.collections || []);
+      } catch {
+        if (isMounted) setCollections([]);
+      }
     };
     fetchCollections();
     return () => { isMounted = false; };
