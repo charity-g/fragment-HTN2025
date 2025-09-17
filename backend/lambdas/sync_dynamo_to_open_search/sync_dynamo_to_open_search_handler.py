@@ -70,20 +70,6 @@ def transform_dynamodb_record(dynamodb_image):
             item[k] = v
     return item
 
-def get_current_document(video_id):
-    """Get the current document from OpenSearch to merge with partial updates"""
-    try:
-        url = f"{host}/{index_name}/_doc/{video_id}"
-        response = requests.get(url, auth=awsauth)
-        if response.status_code == 200:
-            return response.json()['_source']
-        else:
-            print(f"Document {video_id} not found in OpenSearch, returning empty dict")
-            return {}
-    except Exception as e:
-        print(f"Error getting current document {video_id}: {e}")
-        return {}
-
 def index_dynamo_item_to_opensearch(item):
     ensure_index_exists()
     doc_id = item['video_id']
@@ -114,24 +100,10 @@ def lambda_handler(event, context):
         # decide what to do based on data update
         if event_name in ['INSERT', 'MODIFY']:
             # Handle new or modified records
-            if event_name == 'INSERT':
-                # For INSERT, use the complete NewImage
-                new_image = record['dynamodb']['NewImage'] 
-                item = transform_dynamodb_record(new_image)
-                index_dynamo_item_to_opensearch(item)
-            else:  # MODIFY
-                # For MODIFY, we need to merge with existing data
-                # Get the current document from OpenSearch first
-                video_id = record['dynamodb']['Keys']['video_id']['S']
-                current_doc = get_current_document(video_id)
-                
-                # Transform the new partial data
-                new_image = record['dynamodb']['NewImage']
-                new_item = transform_dynamodb_record(new_image)
-                
-                # Merge with existing data (new data overwrites old)
-                merged_item = {**current_doc, **new_item}
-                index_dynamo_item_to_opensearch(merged_item)
+            # new image is new version of data
+            new_image = record['dynamodb']['NewImage'] 
+            item = transform_dynamodb_record(new_image)
+            index_dynamo_item_to_opensearch(item) # is a PUT
             
         elif event_name == 'REMOVE':
             old_image = record['dynamodb']['OldImage'] # the old data

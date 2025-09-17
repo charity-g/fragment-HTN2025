@@ -178,22 +178,3 @@ def lambda_handler(event, context):
             "status": "error",
             "error": str(e)
         }
-
-# To invoke this Lambda function manually using AWS CLI:
-# 1. Create a file called event.json with the following content:
-# {
-#   "Records": [
-#     {
-#       "s3": {
-#         "bucket": { "name": "fragment-webm" },
-#         "object": { "key": "uploads/example.webm" }
-#       }
-#     }
-#   ]
-# }
-#
-# 2. Run this command in your terminal (note the --cli-binary-format flag):
-# aws lambda invoke --function-name ConvertWebMToVideoFormats --payload file://event.json output.json --cli-binary-format raw-in-base64-out
-#
-# Replace 'ConvertWebMToVideoFormats' with your actual Lambda function name if different.
-# The result will be saved in output.json.
