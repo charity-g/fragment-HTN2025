@@ -80,8 +80,18 @@ function LandingContent() {
         </section>
          {!productLive && (
                 <form
-                  className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 pb-20`}
-                  onSubmit={() => 'TODO'}
+                  className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 mx-10 pb-20`}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    fetch('https://your-api-id.execute-api.region.amazonaws.com/prod/waitlist', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: email })
+                    })
+                      .then(response => response.json())
+                      .then(data => console.log(data));
+                    setEmail("");
+                  }}
                 >
                   <input
                     className={styles.ctaSecondary}
