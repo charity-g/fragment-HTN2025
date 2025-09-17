@@ -27,40 +27,44 @@ function LandingContent() {
               priority
               style={{ filter: "brightness(0) invert(1)" }}
             />
-            <Link className="navTitle" href="/fragments">FRAGMENTS</Link>
+            <Link className="navTitle" href="/fragments">
+              FRAGMENTS
+            </Link>
           </div>
           <nav className={styles.nav}>
-            {productLive && (isLoading ? (
-              <div className={styles.btn}>Loading...</div>
-            ) : user ? (
-              <>
-                <Link href="/fragments" className={styles.btn}>
-                  <span>Hello, {user.name}!</span>
-                </Link>
-                <Link className={styles.btn} href="/auth/logout">
-                  Logout
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link className={styles.btn} href="/auth/login?returnTo=/fragments">
-                  Log in
-                </Link>
-                <Link 
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                  href="/auth/login?returnTo=/fragments"
-                >
-                  Sign up
-                </Link>
-              </>
-            ))}
-          </nav>  
+            {productLive &&
+              (isLoading ? (
+                <div className={styles.btn}>Loading...</div>
+              ) : user ? (
+                <>
+                  <Link href="/fragments" className={styles.btn}>
+                    <span>Hello, {user.name}!</span>
+                  </Link>
+                  <Link className={styles.btn} href="/auth/logout">
+                    Logout
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    className={styles.btn}
+                    href="/auth/login?returnTo=/fragments"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    href="/auth/login?returnTo=/fragments"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              ))}
+          </nav>
         </header>
 
         {/* Giant headline */}
-        <section
-          id="waitlist-form"
-          className={styles.hero}>
+        <section id="waitlist-form" className={styles.hero}>
           <h1 className={styles.headline}>
             YOUR
             <br />
@@ -68,37 +72,40 @@ function LandingContent() {
             <br />
             FOR VIDEOS.
           </h1>
-          <p className={styles.subtitle}>Clip anything, anywhere.</p>
-      
-            {productLive && ( <div className={styles.buttonGroup}><Link className={styles.cta} href="#demo">
-              See how it works
-            </Link>
-            <Link className={styles.ctaSecondary} href="/">
-              Get browser extension
-            </Link></div>) }
-            
+          <p className={styles.subtitle}>Clip any video, anywhere.</p>
+
+          {productLive && (
+            <div className={styles.buttonGroup}>
+              <Link className={styles.cta} href="#demo">
+                See how it works
+              </Link>
+              <Link className={styles.ctaSecondary} href="/">
+                Get browser extension
+              </Link>
+            </div>
+          )}
         </section>
-         {!productLive && (
-                <form
-                  className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 pb-20`}
-                  onSubmit={() => 'TODO'}
-                >
-                  <input
-                    className={styles.ctaSecondary}
-                    placeholder="Enter your email"
-                    type="text"
-                    style={{ pointerEvents: "auto" }}
-                    tabIndex={0}
-                    autoComplete="email"
-                    name="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                  />
-                  <button type='submit' className={styles.cta}>
-                    Join the waitlist
-                  </button>
-                </form>
-            )}
+        {!productLive && (
+          <form
+            className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 pb-20`}
+            onSubmit={() => "TODO"}
+          >
+            <input
+              className={styles.ctaSecondary}
+              placeholder="Enter your email"
+              type="text"
+              style={{ pointerEvents: "auto" }}
+              tabIndex={0}
+              autoComplete="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <button type="submit" className={styles.cta}>
+              Join the waitlist
+            </button>
+          </form>
+        )}
       </div>
 
       {/* Demo Section */}
@@ -197,14 +204,15 @@ function LandingContent() {
       <section className={styles.footerSection}>
         <div className={styles.footerContent}>
           <h2 className={styles.footerTitle}>Ready to start fragmenting?</h2>
-          {productLive ? <Link className={styles.cta} href="/">
-            Get browser extension
-          </ Link> :
-          <Link className={styles.cta} href="#waitlist-form">
-            Join the waitlist
-          </ Link>
-          
-        }
+          {productLive ? (
+            <Link className={styles.cta} href="/">
+              Get browser extension
+            </Link>
+          ) : (
+            <Link className={styles.cta} href="#waitlist-form">
+              Join the waitlist
+            </Link>
+          )}
         </div>
       </section>
     </main>
