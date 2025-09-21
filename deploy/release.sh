@@ -18,5 +18,6 @@ git pull origin main
 git checkout -b $DEPLOY_BRANCH
 git push -u origin $DEPLOY_BRANCH
 
+git checkout main # Switch back to main branch
 
 echo "Released to $DEPLOY_BRANCH"
