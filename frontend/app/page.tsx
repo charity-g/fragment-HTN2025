@@ -11,23 +11,38 @@ import { getFirestore, collection, addDoc } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_KEY as string,
-  authDomain: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_AUTH_DOMAIN as string,
-  projectId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_PROJECT_ID as string,
-  storageBucket: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_STORAGE_BUCKET as string,
-  messagingSenderId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_MESSAGING_SENDER_ID as string,
-  appId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_APP_ID as string
+  apiKey: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Validate Firebase config
+const validateFirebaseConfig = () => {
+  const requiredFields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+  return requiredFields.every(field => firebaseConfig[field]);
+};
+
+// Initialize Firebase only if config is valid
+let app, db;
+if (validateFirebaseConfig()) {
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+  }
+}
 
 // Regular Landing Content
 function LandingContent() {
   const productLive = false;
   const { user, isLoading } = useAuth();
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
 
   return (
     <main>
@@ -99,32 +114,78 @@ function LandingContent() {
                   className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 mx-10 pb-20`}
                   onSubmit={async (e) => {
                     e.preventDefault();
-                    try {
-                      await addDoc(collection(db, "waitlist"), {
-                        email: email,
-                        timestamp: new Date()
-                      });
-                      console.log("Email added to waitlist successfully");
-                    } catch (error) {
-                      console.error("Error adding email to waitlist:", error);
+                    
+                    if (!db) {
+                      setSubmitMessage("Service temporarily unavailable. Please try again later.");
+                      return;
                     }
-                    setEmail("");
+
+                    if (!email || !email.includes('@')) {
+                      setSubmitMessage("Please enter a valid email address.");
+                      return;
+                    }
+
+                    setIsSubmitting(true);
+                    setSubmitMessage("");
+
+                    try {
+                      console.log("Attempting to add email to Firestore:", email.trim());
+                      console.log("Database instance:", db);
+                      console.log("Collection reference:", collection(db, "waitlist"));
+                      
+                      const docRef = await addDoc(collection(db, "waitlist"), {
+                        email: email.trim(),
+                        timestamp: new Date().toISOString(),
+                        createdAt: new Date()
+                      });
+                      
+                      console.log("Document written with ID:", docRef.id);
+                      console.log("Document path:", docRef.path);
+                      setSubmitMessage("Successfully added to waitlist! We'll be in touch soon.");
+                      setEmail("");
+                    } catch (error) {
+                      console.error("Detailed error adding email to waitlist:", error);
+                      console.error("Error code:", error.code);
+                      console.error("Error message:", error.message);
+                      
+                      // Check for specific Firestore errors
+                      if (error.code === 'permission-denied') {
+                        setSubmitMessage("Access denied. Please check Firestore security rules.");
+                      } else if (error.code === 'unavailable') {
+                        setSubmitMessage("Service temporarily unavailable. Please try again.");
+                      } else {
+                        setSubmitMessage(`Failed to join waitlist: ${error.message}`);
+                      }
+                    } finally {
+                      setIsSubmitting(false);
+                    }
                   }}
                 >
                   <input
                     className={styles.ctaSecondary}
                     placeholder="Enter your email"
-                    type="text"
+                    type="email"
                     style={{ pointerEvents: "auto" }}
                     tabIndex={0}
                     autoComplete="email"
                     name="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
+                    disabled={isSubmitting}
+                    required
                   />
-                  <button type='submit' className={styles.cta}>
-                    Join the waitlist
+                  <button 
+                    type='submit' 
+                    className={styles.cta}
+                    disabled={isSubmitting || !email}
+                  >
+                    {isSubmitting ? "Joining..." : "Join the waitlist"}
                   </button>
+                  {submitMessage && (
+                    <p className={`text-sm ${submitMessage.includes('Success') ? 'text-green-600' : 'text-red-600'} mt-2`}>
+                      {submitMessage}
+                    </p>
+                  )}
                 </form>
             )}
       </div>
