@@ -7,10 +7,10 @@ import logo from "@/app/src/images/logo.svg";
 import Link from "next/dist/client/link";
 import { useState } from "react";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, Firestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
-const firebaseConfig = {
+const firebaseConfig : { [key: string]: string | undefined } = {
   apiKey: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_PROJECT_ID,
@@ -26,7 +26,7 @@ const validateFirebaseConfig = () => {
 };
 
 // Initialize Firebase only if config is valid
-let app, db;
+let app, db : Firestore;
 if (validateFirebaseConfig()) {
   try {
     app = initializeApp(firebaseConfig);
@@ -150,10 +150,11 @@ function LandingContent() {
                       console.log("Document path:", docRef.path);
                       setSubmitMessage("Successfully added to waitlist! We'll be in touch soon.");
                       setEmail("");
-                    } catch (error) {
+                    } catch (error: unknown) {
                       console.error("Detailed error adding email to waitlist:", error);
-                      console.error("Error code:", error.code);
-                      console.error("Error message:", error.message);
+                      if (error instanceof Error && 'code' in error) {
+                        console.error("Error code:", error.code);
+                        console.error("Error message:", error.message);
                       
                       // Check for specific Firestore errors
                       if (error.code === 'permission-denied') {
@@ -163,6 +164,8 @@ function LandingContent() {
                       } else {
                         setSubmitMessage(`Failed to join waitlist: ${error.message}`);
                       }
+                      }
+
                     } finally {
                       setIsSubmitting(false);
                     }
