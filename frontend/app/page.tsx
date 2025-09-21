@@ -6,6 +6,22 @@ import styles from "@/app/landing/Landing.module.css";
 import logo from "@/app/src/images/logo.svg";
 import Link from "next/dist/client/link";
 import { useState } from "react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_KEY as string,
+  authDomain: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_AUTH_DOMAIN as string,
+  projectId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_PROJECT_ID as string,
+  storageBucket: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_STORAGE_BUCKET as string,
+  messagingSenderId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_MESSAGING_SENDER_ID as string,
+  appId: process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API_APP_ID as string
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 // Regular Landing Content
 function LandingContent() {
@@ -81,15 +97,17 @@ function LandingContent() {
          {!productLive && (
                 <form
                   className={`${styles.buttonGroup} z-10 flex flex-col gap-4 md:flex-row md:gap-2 mx-10 pb-20`}
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    fetch(process.env.NEXT_PUBLIC_EMAIL_WAITLIST_API as string, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json'},
-                      body: JSON.stringify({ email: email })
-                    })
-                      .then(response => response.json())
-                      .then(data => console.log(data));
+                    try {
+                      await addDoc(collection(db, "waitlist"), {
+                        email: email,
+                        timestamp: new Date()
+                      });
+                      console.log("Email added to waitlist successfully");
+                    } catch (error) {
+                      console.error("Error adding email to waitlist:", error);
+                    }
                     setEmail("");
                   }}
                 >
